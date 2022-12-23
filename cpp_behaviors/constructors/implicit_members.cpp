@@ -1,3 +1,5 @@
+// We can default and delete implicit members by using = default and = delete
+
 // default and delete implicit members
 #include <iostream>
 using namespace std;

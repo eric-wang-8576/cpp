@@ -1,3 +1,5 @@
+// Const objects only have access to const member functions
+
 // constructor on const object
 #include <iostream>
 using namespace std;
