@@ -16,3 +16,8 @@ chatbot: $(OBJ)
 
 clean:
 	rm *.o chatbot
+
+CURRENT_BINARY=./chatbot
+NUM_TRIALS := 5
+correctness:
+	python3 tests/test.py --current-binary=${CURRENT_BINARY} --num-trials=${NUM_TRIALS}
