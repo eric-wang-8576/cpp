@@ -1,0 +1,27 @@
+PLO
+4
+4h 7h 6h ks ah 
+10c 10d 5c ad 10s 
+kd 4s 4d 3c 5d 
+6d 6c 7c 5h 8d 
+8
+Allen 54.94 qs 7s 7d 8h 
+Brian 142.21 9s 5s 8s qd 
+Chen 72.55 2h 9h 3h 9c 
+Jason 137.49 6s 3s qc jc 
+Jeff 118.78 10h 9d 3d 2s 
+Josh 89.96 jh ac 8c qh 
+Wang 79.18 kc as js jd 
+Zach 108.8 kh 4c 2d 2c
+
+
+FINAL PAYOUTS:
+Allen: 54.94 -> 109.88 (+54.94)
+Brian: 142.21 -> 59.11 (-83.1)
+Chen: 72.55 -> 0 (-72.55)
+Jason: 137.49 -> 9.355 (-128.135)
+Jeff: 118.78 -> 278.49 (+159.71)
+Josh: 89.96 -> 164.118 (+74.1575)
+Wang: 79.18 -> 0 (-79.18)
+Zach: 108.8 -> 182.958 (+74.1575)
+

@@ -19,8 +19,8 @@ vector<string> split(const string &s, char delim) {
   stringstream ss (s);
   string item;
 
-  while (getline (ss, item, delim)) {
-      result.push_back (item);
+  while (getline(ss, item, delim)) {
+    result.push_back(item);
   }
 
   return result;
@@ -366,7 +366,19 @@ class Board {
 
       // PRINT GENERATED CARDS
       vector<vector<Card>> generatedCards = generatePossibleThreeCards();
-      cout << "Generating Possible Cards For Board:" << endl;
+      cout << "Generating Possible Three Cards For Board:" << endl;
+      for (vector<Card> innerVec : generatedCards) {
+        cout << "New Card: ";
+        for (Card innerCard: innerVec) {
+          cout << " " << innerCard;
+        }
+        cout << "\n";
+      }
+      cout << "\n";
+
+      // PRINT GENERATED CARDS
+      generatedCards = generatePossibleFourCards();
+      cout << "Generating Possible Four Cards For Board:" << endl;
       for (vector<Card> innerVec : generatedCards) {
         cout << "New Card: ";
         for (Card innerCard: innerVec) {
@@ -388,6 +400,25 @@ class Board {
             newVec.push_back(cards[j]);
             newVec.push_back(cards[k]);
             ans.push_back(newVec);
+          }
+        }
+      }
+      return ans;
+    }
+
+    vector<vector<Card>> generatePossibleFourCards() {
+      vector<vector<Card>> ans = vector<vector<Card>>();
+      for (int i = 0; i < NUM_BOARD_CARDS; i++) {
+        for (int j = 0; j < i; j++) {
+          for (int k = 0; k < j; k++) {
+            for (int l = 0; l < k; l++) {
+              vector<Card> newVec = vector<Card>();
+              newVec.push_back(cards[i]);
+              newVec.push_back(cards[j]);
+              newVec.push_back(cards[k]);
+              newVec.push_back(cards[l]);
+              ans.push_back(newVec);
+            }
           }
         }
       }
@@ -433,7 +464,18 @@ class Player {
 
       // PRINT GENERATED CARDS
       vector<vector<Card>> generatedCards = generatePossibleTwoCards();
-      cout << "Generating Possible Cards For Player:" << endl;
+      cout << "Generating Possible Two Cards For Player:" << endl;
+      for (vector<Card> innerVec : generatedCards) {
+        cout << "New Card: ";
+        for (Card innerCard: innerVec) {
+          cout << " " << innerCard;
+        }
+        cout << "\n";
+      }
+      cout << "\n";
+
+      generatedCards = generatePossibleOneCard();
+      cout << "Generating Possible One Card For Player:" << endl;
       for (vector<Card> innerVec : generatedCards) {
         cout << "New Card: ";
         for (Card innerCard: innerVec) {
@@ -457,6 +499,17 @@ class Player {
       }
       return ans;
     }
+
+    vector<vector<Card>> generatePossibleOneCard() {
+      vector<vector<Card>> ans = vector<vector<Card>>();
+      int numHoleCards = holeCards.numCards; 
+      for (int i = 0; i < numHoleCards; i++) {
+        vector<Card> newVec = vector<Card>();
+        newVec.push_back(holeCards.cards[i]);
+        ans.push_back(newVec);
+      }
+      return ans;
+    }
 };
 
 class Showdown {
@@ -464,6 +517,7 @@ class Showdown {
     int numPlayers;
     int numBoards;
     string type;
+    string currFile;
 
   public:
     vector<Player> players;
@@ -477,12 +531,16 @@ class Showdown {
     }
 
     void parseInput(string fileName) {
+      currFile = fileName;
       string currLine;
       ifstream myfile (fileName);
 
       // capture type
 
       getline(myfile, currLine);
+      if (currLine != "PLO" && currLine != "NLH") {
+        throwError("Invalid type!");
+      }
       setType(currLine);
 
       // capture boards
@@ -602,20 +660,54 @@ class Showdown {
     }
 
     void printPayouts() {
-      cout << "\n" << "\n" << "FINAL PAYOUTS:" << endl;
+      ofstream myFile;
+      myFile.open(currFile, ios_base::app);
+      string toWrite;
+
+      myFile << "\n\n\nFINAL PAYOUTS:" << endl;
+      cout << "\n\nFINAL PAYOUTS:" << endl;
       for (Player player: players) {
+        myFile << player.name << ": " << player.originalStackSize << " -> " << player.payout << " (" << showpos << player.payout - player.originalStackSize << noshowpos << ")" << endl;
         cout << player.name << ": " << player.originalStackSize << " -> " << player.payout << " (" << showpos << player.payout - player.originalStackSize << noshowpos << ")" << endl;
       }
+      myFile << "\n";
       cout << "\n\n\n";
     }
 
+    string getHandFromScore(long score) {
+      int handType = score / HAND_RANK;
+      switch (handType) {
+        case (1):
+          return "High Card";
+        case (2):
+          return "One Pair";
+        case (3):
+          return "Two Pair";
+        case (4):
+          return "Trips/Set";
+        case (5):
+          return "Straight";
+        case (6):
+          return "Flush";
+        case (7):
+          return "Full House";
+        case (8):
+          return "Quads";
+        case (9):
+          return "Straight Flush";
+        default:
+          throwError("Hand is not possible!");
+      };
+      return "";
+    }
+
     void calculateScores() {
-      cout << "PLAYER/BOARD SCORES: " << "\n";
+      cout << "PLAYER/BOARD HAND - SCORES: " << "\n";
       for (Player player : players) {
         int boardNum = 1;
         for (Board board : boards) {
           long score = calculatePlayerBoardScore(player, board);
-          cout << player.name << "/Board " << boardNum++ << ": " << score << endl;
+          cout << player.name << "/Board " << boardNum++ << ": " << getHandFromScore(score) << " - " << score << endl;
         }
         cout << "\n\n";
       }
@@ -624,20 +716,43 @@ class Showdown {
     long calculatePlayerBoardScore(Player player, Board board) {
       long score = 0;
       string* combined = new string[5];
-      if (type == "PLO") {
-        vector<vector<Card>> playerPossibleCards = player.generatePossibleTwoCards();
-        vector<vector<Card>> boardPossibleCards = board.generatePossibleThreeCards();
+      // Both NLH and PLO have this logic 
+      vector<vector<Card>> playerPossibleCards = player.generatePossibleTwoCards();
+      vector<vector<Card>> boardPossibleCards = board.generatePossibleThreeCards();
+      for (vector<Card> c1 : playerPossibleCards) {
+        for (vector<Card> c2 : boardPossibleCards) {
+          combined[0] = c1[0];
+          combined[1] = c1[1];
+          combined[2] = c2[0];
+          combined[3] = c2[1];
+          combined[4] = c2[2];
+          score = max(score, getScoreOfHand(combined));
+        }
+      }
+      if (type == "NLH") {
+        // Four on board, one in players hand 
+        vector<vector<Card>> playerPossibleCards = player.generatePossibleOneCard();
+        vector<vector<Card>> boardPossibleCards = board.generatePossibleFourCards();
         for (vector<Card> c1 : playerPossibleCards) {
           for (vector<Card> c2 : boardPossibleCards) {
             combined[0] = c1[0];
-            combined[1] = c1[1];
-            combined[2] = c2[0];
-            combined[3] = c2[1];
-            combined[4] = c2[2];
+            combined[1] = c2[0];
+            combined[2] = c2[1];
+            combined[3] = c2[2];
+            combined[4] = c2[3];
             score = max(score, getScoreOfHand(combined));
           }
         }
+
+        // Playing the board
+        combined[0] = board.cards[0];
+        combined[1] = board.cards[1];
+        combined[2] = board.cards[2];
+        combined[3] = board.cards[3];
+        combined[4] = board.cards[4];
+        score = max(score, getScoreOfHand(combined));
       }
+
       return score;
     }
 
@@ -692,10 +807,18 @@ class Showdown {
 
 };
 
-int main () {
-
+int main( int argc, char *argv[] ) {
+  if (argc == 1) {
+    throwError("Please provide an input text file!");
+  } 
+  string fileName = argv[1];
+  ifstream infile (fileName);
+  if (!infile.good()) {
+    throwError("Input text file invalid!");
+  }
+  
   Showdown showDown;
-  showDown.parseInput("input.txt");
+  showDown.parseInput(fileName);
   showDown.calculateScores();
   showDown.calculatePayouts();
   showDown.printPayouts();

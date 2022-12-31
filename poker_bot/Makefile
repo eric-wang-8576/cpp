@@ -2,9 +2,6 @@ CXXFLAGS =-std=c++17
 DEPS = bot.hpp
 OBJ = bot.o
 
-USETHREE := 0
-
-
 %.o: %.c $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 

@@ -1,0 +1,16 @@
+NLH
+1
+3c 4c 5c 7d 6s
+4
+Allen 10.38 7c 6c
+Brian 20.78 ac 2c
+Jason 49.48 8c 9s
+Jeff 90.48 10s 10d
+
+
+FINAL PAYOUTS:
+Allen: 10.38 -> 41.52 (+31.14)
+Brian: 20.78 -> 31.2 (+10.42)
+Jason: 49.48 -> 57.4 (+7.92)
+Jeff: 90.48 -> 41 (-49.48)
+
