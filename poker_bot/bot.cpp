@@ -538,7 +538,6 @@ class Showdown {
         // Get the players involved in this round and get their values
         double currPot = 0;
         vector<Player*> involved = vector<Player*>();
-        involved.push_back(playerToProcess);
         for (Player& player: players) {
           Player* player_p = &player;
           if (player_p->processed == false) {
@@ -559,7 +558,7 @@ class Showdown {
         for (Player* player : involved) {
           cout << player->name << " ";
         }
-        cout << endl;
+        cout << "\n";
 
         // For each board, calculate and distribute the payouts 
         currPot /= numBoards;
@@ -587,8 +586,9 @@ class Showdown {
           for (Player* player : winners) {
             cout << player->name << " ";
           }
-          cout << endl;
+          cout << "\n";
         }
+        cout << "\n";
 
         
       }
@@ -604,8 +604,9 @@ class Showdown {
     void printPayouts() {
       cout << "\n" << "\n" << "FINAL PAYOUTS:" << endl;
       for (Player player: players) {
-        cout << player.name << ": " << player.payout << " (" << player.payout - player.originalStackSize << ")" << endl;
+        cout << player.name << ": " << player.originalStackSize << " -> " << player.payout << " (" << showpos << player.payout - player.originalStackSize << noshowpos << ")" << endl;
       }
+      cout << "\n\n\n";
     }
 
     void calculateScores() {

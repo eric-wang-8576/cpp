@@ -2,6 +2,8 @@ PLO
 2
 5c 4s 9s jh 8h
 as kh qc 3d 3h
-2
-Eric 3805 ac 4c 6d 5h 
-Josh 1495 8c ah jd qs
+4
+Eric 38.05 3s 3c 7h 7d
+Josh 14.95 js jc ks 2h
+Jeff 92.44 ac 4c 6d 5h 
+Bill 72.49 8c ah jd qs
