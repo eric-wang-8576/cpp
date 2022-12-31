@@ -10,6 +10,8 @@ using namespace std;
 #define MAX_HOLE_CARDS 4
 #define NUM_BOARD_CARDS 5
 
+typedef string Card;
+
 vector<string> split(const string &s, char delim) {
   vector<string> result;
   stringstream ss (s);
@@ -41,6 +43,7 @@ int getCardRank(string s) {
   else if (s == "q" || s == "Q") { return 10; }
   else if (s == "k" || s == "K") { return 11; }
   else if (s == "a" || s == "A") { return 12; }
+  else { throwError("Invalid Card!"); return 0; }
 }
 
 int getSuitRank(string s) {
@@ -48,6 +51,30 @@ int getSuitRank(string s) {
   else if (s == "d" || s == "D") { return 1; }
   else if (s == "h" || s == "H") { return 2; }
   else if (s == "s" || s == "S") { return 3; }
+  else { throwError("Invalid Card!"); return 0; }
+}
+
+bool isQuads(int* valFreq) {
+  for (int i = 0; i < 13; i++) {
+    if (valFreq[i] == 4) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isFullHouse(int* valFreq) {
+  bool hasTwo = false;
+  bool hasThree = false;
+  for (int i = 0; i < 13; i++) {
+    if (valFreq[i] == 2){
+      hasTwo = true;
+    }
+    if (valFreq[i] == 3) {
+      hasThree = true;
+    }
+  }
+  return hasTwo && hasThree;
 }
 
 bool isStraight(int* valFreq) {
@@ -83,20 +110,203 @@ bool isFlush(int* suitFreq) {
   return false;
 }
 
-int getScoreOfHand(vector<Card> combinedCards) {
+bool isThree(int* valFreq) {
+  bool hasTwo = false;
+  bool hasThree = false;
+  for (int i = 0; i < 13; i++) {
+    if (valFreq[i] == 2){
+      hasTwo = true;
+    }
+    if (valFreq[i] == 3) {
+      hasThree = true;
+    }
+  }
+  return (!hasTwo) && hasThree;
+}
+
+bool isTwoPair(int* valFreq) {
+  int hasTwo = 0;
+  for (int i = 0; i < 13; i++) {
+    if (valFreq[i] == 2){
+      hasTwo += 1;
+    }
+  }
+  return hasTwo == 2;
+}
+
+bool isPair(int* valFreq) {
+  int hasTwo = 0;
+  for (int i = 0; i < 13; i++) {
+    if (valFreq[i] == 2){
+      hasTwo += 1;
+    }
+  }
+  return hasTwo == 1;
+}
+
+#define HAND_RANK 10000000000L
+#define VALUE1 100000000L
+#define VALUE2 1000000L
+#define KICKER1 10000L
+#define KICKER2 100L
+#define KICKER3 1L
+
+long getScoreOfHand(vector<Card> combinedCards) {
   int ret;
   int* valFreq = new int[13];
+  memset(valFreq, 0, 13*sizeof(valFreq));
   int* suitFreq = new int[4]; 
+  memset(suitFreq, 0, 4*sizeof(valFreq));
+
   for (Card currCard : combinedCards) {
     int length = currCard.size();
     valFreq[getCardRank(currCard.substr(0, length - 1))]++;
     suitFreq[getSuitRank(currCard.substr(length - 1, 1))]++;
   }
 
-  // CONTINUE IMPLEMENTING HERE
-}
+  for (int i = 0; i < 13; i++) {
+    cout << valFreq[i] << " ";
+  }
+  cout << "\n";
 
-typedef string Card;
+  for (int i = 0; i < 4; i++) {
+    cout << suitFreq[i] << " ";
+  }
+  cout << "\n";
+  
+  // WHILE ENCODING, ADD TWO
+  if (isFlush(suitFreq) && isStraight(valFreq)) { // Straight Flush
+    for (int i = 0; i < 13; i++) {
+      if (valFreq[i] == 1) {
+        return HAND_RANK*9 + VALUE1*(i + 2);
+      }
+    }
+  } else if (isQuads(valFreq)) { // Quads
+    long QUAD_VAL = 0;
+    long KICKER_VAL = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 4) {
+        QUAD_VAL = i + 2;
+      } else if (valFreq[i] == 1) {
+        KICKER_VAL = i + 2;
+      }
+    }
+    return HAND_RANK*8 + VALUE1*QUAD_VAL + KICKER1*KICKER_VAL;
+  } else if (isFullHouse(valFreq)) { // Full House
+    long THREE_VAL = 0;
+    long TWO_VAL = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 3) {
+        THREE_VAL = i + 2;
+      } else if (valFreq[i] == 2) {
+        TWO_VAL = i + 2;
+      }
+    }
+    return HAND_RANK*7 + VALUE1*THREE_VAL + VALUE2*TWO_VAL;
+  } else if (isFlush(suitFreq)) { // Flush
+    long FIRST = 0;
+    long SECOND = 0;
+    long THIRD = 0;
+    long FOURTH = 0;
+    long FIFTH = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 1) {
+        if (FIRST == 0) {
+          FIRST = i + 2;
+        } else if (SECOND == 0) {
+          SECOND = i + 2;
+        } else if (THIRD == 0) {
+          THIRD = i + 2;
+        } else if (FOURTH == 0) {
+          FOURTH = i + 2;
+        } else {
+          FIFTH = i + 2;
+        }
+      } 
+    }
+    return HAND_RANK*6 + VALUE1*FIRST + VALUE2*SECOND + KICKER1*THIRD + KICKER2*FOURTH + KICKER3*FIFTH;
+  } else if (isStraight(valFreq)) { // Straight
+    for (int i = 0; i < 13; i++) {
+      if (valFreq[i] == 1) {
+        return HAND_RANK*5 + VALUE1*(i + 2);
+      }
+    }
+  } else if (isThree(valFreq)) { // Trips/Set
+    long THREE_VAL = 0;
+    long KICKER_1 = 0;
+    long KICKER_2 = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 1) {
+        if (KICKER_1 == 0) {
+          KICKER_1 = i + 2;
+        } else if (KICKER_2 == 0) {
+          KICKER_2 = i + 2;
+        }
+      } else if (valFreq[i] == 3) {
+        THREE_VAL = i + 2;
+      }
+    }
+    return HAND_RANK*4 + VALUE1*THREE_VAL + KICKER1*KICKER_1 + KICKER2*KICKER_2;
+  } else if (isTwoPair(valFreq)) { // Two Pair
+    long VAL1 = 0;
+    long VAL2 = 0;
+    long KICKER = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 2) {
+        if (VAL1 == 0) {
+          VAL1 = i + 2;
+        } else if (VAL2 == 0) {
+          VAL2 = i + 2;
+        }
+      } else if (valFreq[i] == 1) {
+        KICKER = i + 2;
+      }
+    }
+    return HAND_RANK*3 + VALUE1*VAL1 + VALUE2*VAL2 + KICKER1*KICKER;
+  } else if (isPair(valFreq)) { // One Pair
+    long VAL1 = 0;
+    long KICKER_1 = 0;
+    long KICKER_2 = 0;
+    long KICKER_3 = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 2) {
+        VAL1 = i + 2;
+      } else if (valFreq[i] == 1) {
+        if (KICKER_1 == 0) {
+          KICKER_1 = i + 2;
+        } else if (KICKER_2 == 0) {
+          KICKER_2 = i + 2;
+        } else if (KICKER_3 == 0) {
+          KICKER_3 = i + 2;
+        }
+      }
+    }
+    return HAND_RANK*2 + VALUE1*VAL1 + KICKER1*KICKER_1 + KICKER2*KICKER_2 + KICKER3*KICKER_3;
+  } else { // High Card
+    long FIRST = 0;
+    long SECOND = 0;
+    long THIRD = 0;
+    long FOURTH = 0;
+    long FIFTH = 0;
+    for (int i = 12; i >= 0; i--) {
+      if (valFreq[i] == 1) {
+        if (FIRST == 0) {
+          FIRST = i + 2;
+        } else if (SECOND == 0) {
+          SECOND = i + 2;
+        } else if (THIRD == 0) {
+          THIRD = i + 2;
+        } else if (FOURTH == 0) {
+          FOURTH = i + 2;
+        } else {
+          FIFTH = i + 2;
+        }
+      } 
+    }
+    return HAND_RANK*1 + VALUE1*FIRST + VALUE2*SECOND + KICKER1*THIRD + KICKER2*FOURTH + KICKER3*FIFTH;
+  }
+  return 0;
+}
 
 class HoleCards {
   public:
@@ -247,7 +457,7 @@ class Showdown {
 
     int calculatePlayerBoardScore(Player player, Board board) {
       if (type == "PLO") {
-        int score = 0;
+        long score = 0;
         vector<vector<Card>> playerPossibleCards = player.generatePossibleTwoCards();
         vector<vector<Card>> boardPossibleCards = board.generatePossibleThreeCards();
         for (vector<Card> playerCards : playerPossibleCards) {
@@ -348,19 +558,14 @@ int main () {
 
   showDown.printPlayers();
 
+  // NEW TESTS
+  vector<Card> test = vector<Card>();
+  test.push_back("ad");
+  test.push_back("as");
+  test.push_back("kc");
+  test.push_back("qh");
+  test.push_back("js");
 
+  cout << getScoreOfHand(test) << endl;
 
-
-
-  // if (myfile.is_open()) {
-  //     while (getline(myfile, currLine)) {
-  //         cout << currLine << "\n";
-  //     }
-  //     myfile.close();
-  // } else {
-  //     cout << "Unable to open file!";
-  // }
-
-    
-  //   print_file(currFile);
 }
