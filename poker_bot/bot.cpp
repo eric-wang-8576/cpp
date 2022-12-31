@@ -5,10 +5,12 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <limits.h>
 using namespace std;
 
 #define MAX_HOLE_CARDS 4
 #define NUM_BOARD_CARDS 5
+#define MAX_DOUBLE
 
 typedef string Card;
 
@@ -396,15 +398,19 @@ class Board {
 class Player {
   public:
     string name;
+    double originalStackSize;
     double stackSize;
     HoleCards holeCards;
     int highestScore;
-    
-    int payout;
+
+    bool processed;
+    double payout;
+
     Player (string s) {
       vector<string> vec = split(s, ' ');
       name = vec[0];
       stackSize = stod(vec[1]); 
+      originalStackSize = stackSize;
 
       holeCards = HoleCards();
       for (int i = 2; i < vec.size(); i++) {
@@ -413,6 +419,9 @@ class Player {
       holeCards.numCards = vec.size() - 2;
 
       highestScore = 0;
+      
+      processed = false;
+      payout = 0;
     }
 
     void printPlayer() {
@@ -467,12 +476,147 @@ class Showdown {
       boards = vector<Board>();
     }
 
-    void calculateScores() {
+    void parseInput(string fileName) {
+      string currLine;
+      ifstream myfile (fileName);
+
+      // capture type
+
+      getline(myfile, currLine);
+      setType(currLine);
+
+      // capture boards
+
+      getline(myfile, currLine);
+      setNumBoards(stoi(currLine));
+
+      for (int i = 0; i < getNumBoards(); i++) {
+        getline(myfile, currLine);
+        addBoard(currLine);
+      }
+
+      printBoards();
+
+      // capture players
+
+      getline(myfile, currLine);
+      setNumPlayers(stoi(currLine));
+
+      for (int i = 0; i < getNumPlayers(); i++) {
+        getline(myfile, currLine);
+        addPlayer(currLine);
+      }
+
+      printPlayers();
+    }
+
+    int numUnprocessed() {
+      int count = 0;
       for (Player player : players) {
+        if (player.processed == false) {
+          count += 1;
+        }
+      }
+      return count;
+    }
+
+    void calculatePayouts() {
+
+      int sidePotNum = 1;
+      while (numUnprocessed() > 1) {
+        // cout << numUnprocessed();
+        // Get smallest value and corresponding player
+        double smallestStack = INT_MAX;
+        Player* playerToProcess = nullptr;
+        for (Player& player: players) {
+          if (player.processed == false && player.stackSize < smallestStack) {
+            smallestStack = player.stackSize;
+            playerToProcess = &player;
+          }
+        }
+
+        // Get the players involved in this round and get their values
+        double currPot = 0;
+        vector<Player*> involved = vector<Player*>();
+        involved.push_back(playerToProcess);
+        for (Player& player: players) {
+          Player* player_p = &player;
+          if (player_p->processed == false) {
+            involved.push_back(player_p);
+            player_p->stackSize -= smallestStack;
+            if (player_p->stackSize == 0) { // In case someone else drops to zero, we can mark them as processed too
+              player_p->processed = true;
+            }
+            currPot += smallestStack;
+          }
+        }
+
+        // Mark player as processed
+        (*playerToProcess).processed = true;
+
+        cout << "SIDE POT #" << sidePotNum++ << ": " << currPot << endl;
+        cout << "Participants: ";
+        for (Player* player : involved) {
+          cout << player->name << " ";
+        }
+        cout << endl;
+
+        // For each board, calculate and distribute the payouts 
+        currPot /= numBoards;
+        int boardNum = 1;
+        for (int boardInd = 0; boardInd < numBoards; boardInd++) {
+          vector<Player*> winners = vector<Player*>();
+          long maxScore = 0;
+          for (Player* player_p: involved) {
+            long score = calculatePlayerBoardScore(*player_p, boards[boardInd]);
+            if (score > maxScore) {
+              maxScore = score;
+              winners.clear();
+              winners.push_back(player_p);
+            } else if (score == maxScore) {
+              winners.push_back(player_p);
+            }
+          } 
+
+          int numWinners = winners.size();
+          for (Player* player : winners) {
+            player->payout += currPot/winners.size();
+          }
+
+          cout << "Board " << boardNum++ << " Winners: ";
+          for (Player* player : winners) {
+            cout << player->name << " ";
+          }
+          cout << endl;
+        }
+
+        
+      }
+
+      for (Player& player: players) {
+        double remaining = player.stackSize;
+        player.stackSize -= remaining;
+        player.payout += remaining;
+      }
+      
+    }
+
+    void printPayouts() {
+      cout << "\n" << "\n" << "FINAL PAYOUTS:" << endl;
+      for (Player player: players) {
+        cout << player.name << ": " << player.payout << " (" << player.payout - player.originalStackSize << ")" << endl;
+      }
+    }
+
+    void calculateScores() {
+      cout << "PLAYER/BOARD SCORES: " << "\n";
+      for (Player player : players) {
+        int boardNum = 1;
         for (Board board : boards) {
           long score = calculatePlayerBoardScore(player, board);
-          cout << player.name << score << endl;
+          cout << player.name << "/Board " << boardNum++ << ": " << score << endl;
         }
+        cout << "\n\n";
       }
     }
 
@@ -548,53 +692,11 @@ class Showdown {
 };
 
 int main () {
+
   Showdown showDown;
-  
-  string fileName = "input.txt";
-  string currLine;
-  ifstream myfile (fileName);
-
-  // capture type
-
-  getline(myfile, currLine);
-  showDown.setType(currLine);
-
-  // capture boards
-
-  getline(myfile, currLine);
-  showDown.setNumBoards(stoi(currLine));
-
-  for (int i = 0; i < showDown.getNumBoards(); i++) {
-    getline(myfile, currLine);
-    showDown.addBoard(currLine);
-  }
-
-  showDown.printBoards();
-
-  // capture players
-
-  getline(myfile, currLine);
-  showDown.setNumPlayers(stoi(currLine));
-
-  for (int i = 0; i < showDown.getNumPlayers(); i++) {
-    getline(myfile, currLine);
-    showDown.addPlayer(currLine);
-  }
-
-  showDown.printPlayers();
-
+  showDown.parseInput("input.txt");
   showDown.calculateScores();
-
-  // // NEW TESTS
-  // vector<Card> test = vector<Card>();
-  // test.push_back("ad");
-  // test.push_back("as");
-  // test.push_back("kc");
-  // test.push_back("qh");
-  // test.push_back("js");
-
-  // cout << getScoreOfHand(test) << endl;
-
-
+  showDown.calculatePayouts();
+  showDown.printPayouts();
 
 }

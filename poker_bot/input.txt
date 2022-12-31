@@ -1,7 +1,7 @@
 PLO
 2
-3s 4d 9d jc 5s
-4d 5d 9h as ah
+5c 4s 9s jh 8h
+as kh qc 3d 3h
 2
-Eric 38.05 9s 10d qh qs
-Josh 14.95 3d 2d kh ks
+Eric 3805 ac 4c 6d 5h 
+Josh 1495 8c ah jd qs
