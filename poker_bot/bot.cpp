@@ -43,7 +43,7 @@ int getCardRank(string s) {
   else if (s == "q" || s == "Q") { return 10; }
   else if (s == "k" || s == "K") { return 11; }
   else if (s == "a" || s == "A") { return 12; }
-  else { throwError("Invalid Card!"); return 0; }
+  else { cout << "INVALID CARD!" << s; return 0; }
 }
 
 int getSuitRank(string s) {
@@ -51,7 +51,7 @@ int getSuitRank(string s) {
   else if (s == "d" || s == "D") { return 1; }
   else if (s == "h" || s == "H") { return 2; }
   else if (s == "s" || s == "S") { return 3; }
-  else { throwError("Invalid Card!"); return 0; }
+  else { cout << "INVALID CARD!" << s; return 0; }
 }
 
 bool isQuads(int* valFreq) {
@@ -80,12 +80,16 @@ bool isFullHouse(int* valFreq) {
 bool isStraight(int* valFreq) {
   // Wheel
   if (valFreq[12] == 1) {
+    bool isStraight = true;
     for (int i = 0; i < 4; i++) {
       if (valFreq[i] != 1) {
+        isStraight = false;
         break;
       }
     }
-    return true;
+    if (isStraight) {
+      return true;
+    }
   }
   // Normal Straight
   for (int i = 0; i < 13; i++) {
@@ -116,8 +120,7 @@ bool isThree(int* valFreq) {
   for (int i = 0; i < 13; i++) {
     if (valFreq[i] == 2){
       hasTwo = true;
-    }
-    if (valFreq[i] == 3) {
+    } else if (valFreq[i] == 3) {
       hasThree = true;
     }
   }
@@ -151,28 +154,33 @@ bool isPair(int* valFreq) {
 #define KICKER2 100L
 #define KICKER3 1L
 
-long getScoreOfHand(vector<Card> combinedCards) {
+long getScoreOfHand(string* combinedCards) {
   int ret;
   int* valFreq = new int[13];
-  memset(valFreq, 0, 13*sizeof(valFreq));
+  for (int i = 0; i < 13; i++) {
+    valFreq[i] = 0;
+  }
   int* suitFreq = new int[4]; 
-  memset(suitFreq, 0, 4*sizeof(valFreq));
+  for (int i = 0; i < 4; i++) {
+    suitFreq[i] = 0;
+  }
 
-  for (Card currCard : combinedCards) {
-    int length = currCard.size();
+  for (int i = 0; i < 5; i++) {
+    string currCard = combinedCards[i];
+    int length = currCard.length();
     valFreq[getCardRank(currCard.substr(0, length - 1))]++;
     suitFreq[getSuitRank(currCard.substr(length - 1, 1))]++;
   }
 
-  for (int i = 0; i < 13; i++) {
-    cout << valFreq[i] << " ";
-  }
-  cout << "\n";
+  // for (int i = 0; i < 13; i++) {
+  //   cout << valFreq[i] << " ";
+  // }
+  // cout << "\n";
 
-  for (int i = 0; i < 4; i++) {
-    cout << suitFreq[i] << " ";
-  }
-  cout << "\n";
+  // for (int i = 0; i < 4; i++) {
+  //   cout << suitFreq[i] << " ";
+  // }
+  // cout << "\n";
   
   // WHILE ENCODING, ADD TWO
   if (isFlush(suitFreq) && isStraight(valFreq)) { // Straight Flush
@@ -228,7 +236,11 @@ long getScoreOfHand(vector<Card> combinedCards) {
   } else if (isStraight(valFreq)) { // Straight
     for (int i = 0; i < 13; i++) {
       if (valFreq[i] == 1) {
-        return HAND_RANK*5 + VALUE1*(i + 2);
+        if (i == 0 && valFreq[12] == 1) {
+          return HAND_RANK*5 + VALUE1*(i + 1);
+        } else {
+          return HAND_RANK*5 + VALUE1*(i + 2);
+        }
       }
     }
   } else if (isThree(valFreq)) { // Trips/Set
@@ -455,20 +467,33 @@ class Showdown {
       boards = vector<Board>();
     }
 
-    int calculatePlayerBoardScore(Player player, Board board) {
+    void calculateScores() {
+      for (Player player : players) {
+        for (Board board : boards) {
+          long score = calculatePlayerBoardScore(player, board);
+          cout << player.name << score << endl;
+        }
+      }
+    }
+
+    long calculatePlayerBoardScore(Player player, Board board) {
+      long score = 0;
+      string* combined = new string[5];
       if (type == "PLO") {
-        long score = 0;
         vector<vector<Card>> playerPossibleCards = player.generatePossibleTwoCards();
         vector<vector<Card>> boardPossibleCards = board.generatePossibleThreeCards();
-        for (vector<Card> playerCards : playerPossibleCards) {
-          for (vector<Card> boardCards : boardPossibleCards) {
-            vector<Card> combinedCards (playerCards);
-            combinedCards.insert(playerCards.end(), boardCards.begin(), boardCards.end());
-            score = max(score, getScoreOfHand(combinedCards));
+        for (vector<Card> c1 : playerPossibleCards) {
+          for (vector<Card> c2 : boardPossibleCards) {
+            combined[0] = c1[0];
+            combined[1] = c1[1];
+            combined[2] = c2[0];
+            combined[3] = c2[1];
+            combined[4] = c2[2];
+            score = max(score, getScoreOfHand(combined));
           }
         }
       }
-      return 0;
+      return score;
     }
 
     void addBoard(string s) {
@@ -558,14 +583,18 @@ int main () {
 
   showDown.printPlayers();
 
-  // NEW TESTS
-  vector<Card> test = vector<Card>();
-  test.push_back("ad");
-  test.push_back("as");
-  test.push_back("kc");
-  test.push_back("qh");
-  test.push_back("js");
+  showDown.calculateScores();
 
-  cout << getScoreOfHand(test) << endl;
+  // // NEW TESTS
+  // vector<Card> test = vector<Card>();
+  // test.push_back("ad");
+  // test.push_back("as");
+  // test.push_back("kc");
+  // test.push_back("qh");
+  // test.push_back("js");
+
+  // cout << getScoreOfHand(test) << endl;
+
+
 
 }
