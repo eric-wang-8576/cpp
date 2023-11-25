@@ -7,3 +7,11 @@ Eric 30.38 4d 8c 8d 9s
 Josh 35.72 as qh 6s 6d
 Jeff 40.28 ah qs 8s 2c 
 Bill 72.49 ad qd 7d 8c 
+
+
+FINAL PAYOUTS:
+Eric: 30.38 -> 0 (-30.38)
+Josh: 35.72 -> 22.9233 (-12.7967)
+Jeff: 40.28 -> 25.2033 (-15.0767)
+Bill: 72.49 -> 130.743 (+58.2533)
+
