@@ -51,9 +51,7 @@
  *   move semantics with the parameters
  */
 
-// PG 219 & 222 (std::pair)
-// PG 223 (std::optional)
-// PG 231 (std::promise & std::futures)
+// NOTE: std::pair, std::optional, and std::promise/std::future code are in separate playgrounds
 
 //    template<typename... Args>
 //    constexpr T& emplace_back(Args&&... args) {
