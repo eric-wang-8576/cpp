@@ -2,6 +2,7 @@
 #include "strategy.hpp"
 
 void Strategy::play() {
+    // TODO: Implement me! 
     while (!game->isFinished()) {
         COLOR color;
         int betQty;

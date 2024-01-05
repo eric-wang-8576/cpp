@@ -8,7 +8,7 @@ project(
   LANGUAGES CXX
   DESCRIPTION "Move Semantics Book")
 
-file( GLOB SOURCES src/ch*.cpp )
+file( GLOB SOURCES src/*.cpp )
 
 foreach( testsourcefile ${SOURCES} )
     get_filename_component( testname ${testsourcefile} NAME_WE )
