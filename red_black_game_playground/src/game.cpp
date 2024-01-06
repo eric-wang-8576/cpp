@@ -19,7 +19,7 @@ COLOR Game::draw(COLOR betColor, int betQty) {
     } else {
         numBlack--;
     }
-    if (numRed == 0 && numBlack == 0) {
+    if (numRed + numBlack <= 0) {
         finished = true;
     }
 

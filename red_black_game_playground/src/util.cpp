@@ -7,7 +7,7 @@ namespace GameUtil {
     std::mt19937 generator(seed);
 
     int minBet = 1;
-    int maxBet = 10;
+    int maxBet = 1;
 
     // Returns a random integer from 0 to max, non-inclusive
     int generateRandom(int max) {

@@ -6,8 +6,8 @@ public:
 
     Strategy(Game* g) : 
         game(g), 
-        numRed(32), 
-        numBlack(32) {}
+        numRed(26), 
+        numBlack(26) {}
 
     void play();
     void random();

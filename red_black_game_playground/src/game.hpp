@@ -17,8 +17,8 @@ public:
         minBet(min), 
         maxBet(max), 
         pnl(0),
-        numRed(32),
-        numBlack(32),
+        numRed(26),
+        numBlack(26),
         finished(false) {}
 
     COLOR draw(COLOR betColor, int betQty);
