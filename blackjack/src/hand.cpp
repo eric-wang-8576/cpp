@@ -43,10 +43,14 @@ void Hand::updateValues() {
 }
 
 std::string Hand::getString() {
-    std::string str = "Hand#: ";
+    std::string str = "";
 
     // 12 magic number is maximum # possible without busting
+    bool totalObscured = false;
     for (int i = 0; i < 12; ++i) {
+        if (cards[i].isObscured()) {
+            totalObscured = true;
+        }
         if (i < cards.size()) {
             str += cards[i].getString();
         } else {
@@ -58,6 +62,9 @@ std::string Hand::getString() {
     str += "(";
     if (busted) {
         str += "BUST";
+
+    } else if (totalObscured) {
+        str += "?";
 
     } else if (isBlackJack) {
         str += "BLACKJACK";
@@ -73,9 +80,9 @@ std::string Hand::getString() {
     }
     str += ")";
 
+    if (betAmt != 0) {
+        str += "          $" + std::to_string(betAmt);
+    }
+
     return str;
 }
-
-    
-
-

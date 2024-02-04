@@ -1,6 +1,9 @@
 #include "card.hpp"
 
 std::string Card::getString() {
+    if (obscured) {
+        return "??";
+    }
     switch (val) {
         case 1:
             return "A ";
@@ -36,3 +39,11 @@ uint8_t Card::getVal() {
         return 10;
     }
 };
+
+void Card::setObscured(bool b) {
+    obscured = b;
+}
+
+bool Card::isObscured() {
+    return obscured;
+}

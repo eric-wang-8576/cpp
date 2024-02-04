@@ -25,6 +25,9 @@ int main() {
         std::getline(std::cin, userInput);
         Msg msg = game.processInput(std::move(userInput));
         msg.print();
+        if (msg.gameOver) {
+            exit(0);
+        }
     }
 }
 

@@ -6,10 +6,15 @@
 #include "shoe.hpp"
 #include "msg.hpp"
 
+enum GameState {
+    INHAND,
+    NOTINHAND,
+};
+    
 class Game {
 private:
     // Game State
-    
+    bool activeBoard;
 
     // Money State
     uint32_t buyIn;
@@ -21,15 +26,22 @@ private:
     Hand dealerHand;
     std::vector<Hand> playerHands;
 
+    // Bet State
+    uint8_t prevBet;
+
     Shoe shoe;
 
 public:
     Game() : 
-        buyIn(0), 
-        stackSize(0), 
+        activeBoard(false),
+        buyIn(500), 
+        stackSize(500), 
         tips(0), 
         handNum(0),
-        shoe(6) {}
+        shoe(6),
+        prevBet(100) {}
 
     Msg processInput(std::string input);
+    
+    void resetBoard();
 };

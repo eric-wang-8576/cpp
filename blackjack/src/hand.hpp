@@ -3,19 +3,22 @@
 #include "card.hpp"
 
 class Hand {
-    std::vector<Card> cards;
     // contains the possible <= 21 values of the hand
-    std::vector<uint8_t> values;
     
     // player controlled
     bool finished;
-    bool busted;
     bool isBlackJack;
-
+    
     void updateValues();
 
 public:
-    Hand() : finished(false), busted(false), isBlackJack(false) {}
+    std::vector<uint8_t> values;
+    bool busted;
+    std::vector<Card> cards;
+
+    uint32_t betAmt;// TODO: Make this private
+
+    Hand() : finished(false), busted(false), isBlackJack(false), betAmt(0) {}
 
     // adds the card and updates internal values
     void addCard(Card card);
