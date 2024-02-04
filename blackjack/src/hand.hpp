@@ -4,8 +4,7 @@
 
 class Hand {
     std::vector<Card> cards;
-    // contains the possible values of the hand, if there is no value
-    // then the hand is busted
+    // contains the possible <= 21 values of the hand
     std::vector<uint8_t> values;
     
     // player controlled
