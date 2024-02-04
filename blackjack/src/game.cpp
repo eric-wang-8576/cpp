@@ -67,9 +67,8 @@ Msg Game::handleBet(uint32_t betAmt) {
 
     // Give the dealer a hand, obscuring the second card
     dealerHand.addCard(shoe.draw());
-    Card second = shoe.draw();
-    second.setObscured(true);
-    dealerHand.addCard(second);
+    dealerHand.addCard(shoe.draw());
+    dealerHand.obscured = true;
 
     // Give the player a hand 
     Hand newHand;
@@ -98,7 +97,7 @@ Msg Game::handleHit() {
     playerHands[playerIdx].addCard(card);
 
     // If we bust, then let the player know and move onto the next hand 
-    if (playerHands[playerIdx].busted) {
+    if (playerHands[playerIdx].isBusted()) {
         fillMsg(msg);
 
         playerIdx++;
@@ -139,8 +138,8 @@ Msg Game::handleStand() {
     }
 
     // If this is the final hand, then resolve the dealer and conclude hand 
-    dealerHand.cards[1].setObscured(false);
-    while (!dealerHand.busted && dealerHand.values.back() < 17) {
+    dealerHand.obscured = false;
+    while (!dealerHand.isBusted() && dealerHand.values.back() < 17) {
         dealerHand.addCard(shoe.draw());
     }
 
@@ -153,7 +152,7 @@ Msg Game::concludeHand() {
     // Calculate payouts 
     uint32_t winnings = 0;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        if (dealerHand.busted ||
+        if (dealerHand.isBusted() ||
                 (dealerHand.values.back() < playerHands[idx].values.back())) {
             winnings += 2 * playerHands[idx].betAmt;
 

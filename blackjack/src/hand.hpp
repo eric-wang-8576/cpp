@@ -6,19 +6,18 @@ class Hand {
     // contains the possible <= 21 values of the hand
     
     // player controlled
-    bool finished;
     bool isBlackJack;
-    
+    bool busted;
+
     void updateValues();
 
 public:
+    bool obscured;
     std::vector<uint8_t> values;
-    bool busted;
     std::vector<Card> cards;
-
     uint32_t betAmt;// TODO: Make this private
 
-    Hand() : finished(false), busted(false), isBlackJack(false), betAmt(0) {}
+    Hand() : obscured(false), busted(false), isBlackJack(false), betAmt(0) {}
 
     // adds the card and updates internal values
     void addCard(Card card);
