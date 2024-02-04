@@ -5,6 +5,11 @@ void Hand::addCard(Card card) {
     updateValues();
 }
 
+void Hand::popCard() {
+    cards.pop_back();
+    updateValues();
+}
+
 void Hand::updateValues() {
     // set this->values
     values.clear();
@@ -48,7 +53,7 @@ std::string Hand::getString() {
     // 12 magic number is maximum # possible without busting
     for (int i = 0; i < 12; ++i) {
         if (i == 1 && obscured) { // obscure dealer's second card
-            str += "  ";
+            str += "??";
         } else if (i < cards.size()) {
             str += cards[i].getString();
         } else {
@@ -87,4 +92,8 @@ std::string Hand::getString() {
 
 bool Hand::isBusted() {
     return busted;
+}
+
+bool Hand::isPair() {
+    return (cards.size() == 2 && (cards[0].getString() == cards[1].getString()));
 }

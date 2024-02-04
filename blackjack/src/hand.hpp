@@ -21,6 +21,7 @@ public:
 
     // adds the card and updates internal values
     void addCard(Card card);
+    void popCard();
 
     void setFinished();
     bool isFinished();
@@ -28,6 +29,8 @@ public:
     bool isBusted();
 
     bool isSoft();
+    
+    bool isPair();
 
     std::string getString();
 };

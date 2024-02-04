@@ -50,6 +50,8 @@ public:
     Msg handleBet(uint32_t betAmt);
     Msg handleHit();
     Msg handleStand();
+    Msg handleDouble();
+    Msg handleSplit();
 
     Msg processInput(std::string input); 
     Msg concludeHand();

@@ -26,10 +26,11 @@ void Game::fillMsg(Msg& msg) {
  */
 Msg Game::handleAdd(uint32_t addValue) {
     Msg msg;
-    fillMsg(msg);
 
     buyIn += addValue;
     stackSize += addValue;
+
+    fillMsg(msg);
 
     // Populate msg 
     msg.prevActionConfirmation = "You have added $" + 
@@ -146,8 +147,58 @@ Msg Game::handleStand() {
     return concludeHand();
 }
 
+// Assumes that this is a valid position to double in 
+Msg Game::handleDouble() {
+    Msg msg;
+
+    Card card = shoe.draw();
+    playerHands[playerIdx].addCard(card);
+    stackSize -= playerHands[playerIdx].betAmt;
+    playerHands[playerIdx].betAmt *= 2;
+
+    playerIdx++;
+    if (playerIdx == playerHands.size()) {
+        dealerHand.obscured = false;
+        while (!dealerHand.isBusted() && dealerHand.values.back() < 17) {
+            dealerHand.addCard(shoe.draw());
+        }
+
+        return concludeHand();
+
+    } else {
+        fillMsg(msg);
+        msg.prevActionConfirmation = "You doubled down on Hand #" + 
+                                     std::to_string(playerIdx);
+        msg.prompt = true; 
+        msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+
+        return msg;
+    }
+}
+
+// Assumes that this is a valid position to split 
+Msg Game::handleSplit() {
+    Msg msg;
+    
+    Hand newHand;
+    newHand.addCard(playerHands[playerIdx].cards[1]);
+    newHand.betAmt = playerHands[playerIdx].betAmt;
+    stackSize -= newHand.betAmt;
+    playerHands[playerIdx].popCard();
+    playerHands.push_back(newHand);
+
+    fillMsg(msg);
+    msg.prevActionConfirmation = "You split Hand #" + std::to_string(playerIdx + 1);
+    msg.prompt = true;
+    msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+
+    return msg;
+}
+
 Msg Game::concludeHand() {
     Msg msg;
+
+    dealerHand.obscured = false;
 
     // Calculate payouts 
     uint32_t winnings = 0;
@@ -219,6 +270,33 @@ Msg Game::processInput(std::string input) {
         }
 
         return handleStand();
+
+    // Player doubles down
+    } else if (input == "d") {
+
+        if (!activeBoard) {
+            goto invalidLabel;
+        }
+
+        uint8_t val = playerHands[playerIdx].values.back();
+        if (val < 9 || val > 11) {
+            goto invalidLabel;
+        }
+
+        return handleDouble();
+
+    // Player splits 
+    } else if (input == "p") {
+
+        if (!activeBoard) {
+            goto invalidLabel;
+        }
+
+        if (!(playerHands[playerIdx].isPair())) {
+            goto invalidLabel;
+        }
+
+        return handleSplit();
 
     // Player exits
     } else if (input == "e") {
