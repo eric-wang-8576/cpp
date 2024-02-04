@@ -283,6 +283,17 @@ Msg Game::processInput(std::string input) {
             goto invalidLabel;
         }
 
+        if (stackSize < playerHands[playerIdx].betAmt) {
+            Msg msg;
+            fillMsg(msg);
+            msg.prevActionConfirmation = "Your current stack size is $" +
+                                         std::to_string(stackSize) + 
+                                         ". Please add more money \
+                                         to perform this action.";
+            msg.prompt = false;
+            return msg;
+        }
+
         return handleDouble();
 
     // Player splits 
@@ -294,6 +305,17 @@ Msg Game::processInput(std::string input) {
 
         if (!(playerHands[playerIdx].isPair())) {
             goto invalidLabel;
+        }
+
+        if (stackSize < playerHands[playerIdx].betAmt) {
+            Msg msg;
+            fillMsg(msg);
+            msg.prevActionConfirmation = "Your current stack size is $" +
+                                         std::to_string(stackSize) + 
+                                         ". Please add more money \
+                                         to perform this action.";
+            msg.prompt = false;
+            return msg;
         }
 
         return handleSplit();
