@@ -12,28 +12,177 @@ void Game::resetBoard() {
     playerHands.clear();
 }
 
-Msg Game::processInput(std::string input) {
+void Game::fillMsg(Msg& msg) {
+    msg.stackSize = stackSize;
+    msg.showBoard = activeBoard;
+    msg.dealerHand = dealerHand;
+    msg.playerHands = playerHands;
+    msg.playerIdx = playerIdx;
+    msg.gameOver = gameOver;
+};
+
+/*
+ * Called when the player adds chips
+ */
+Msg Game::handleAdd(uint32_t addValue) {
     Msg msg;
+    fillMsg(msg);
+
+    buyIn += addValue;
+    stackSize += addValue;
+
+    // Populate msg 
+    msg.prevActionConfirmation = "You have added $" + 
+                                 std::to_string(addValue) + 
+                                 " to your stack. Your new stack size is $" +
+                                 std::to_string(stackSize) + 
+                                 ".";
+    msg.prompt = false;
+    return msg;
+}
+
+/*
+ * Called when the player bets or initiates a hand
+ * This function only handles the case when it is valid to do so
+ *
+ */
+Msg Game::handleBet(uint32_t betAmt) {
+    Msg msg;
+    fillMsg(msg);
+
+    // Early return if insufficient chips 
+    if (betAmt > stackSize) {
+        msg.prevActionConfirmation = "Your current stack size is $" +
+                                     std::to_string(stackSize) + 
+                                     ". Please enter a smaller bet size or \
+                                     add more money.";
+        msg.prompt = false;
+        return msg;
+    }
+
+
+    // Start the hand 
+    activeBoard = true;
+    stackSize -= betAmt;
+
+    // Give the dealer a hand, obscuring the second card
+    dealerHand.addCard(shoe.draw());
+    Card second = shoe.draw();
+    second.setObscured(true);
+    dealerHand.addCard(second);
+
+    // Give the player a hand 
+    Hand newHand;
+    newHand.addCard(shoe.draw());
+    newHand.addCard(shoe.draw());
+    newHand.betAmt = betAmt;
+    playerHands.push_back(newHand);
+    playerIdx = 0;
+
+    // Check for blackjack TODO 
+
+    // Populate msg 
+    fillMsg(msg);
+    msg.prevActionConfirmation = "You have bet $" + std::to_string(betAmt) +
+                                 ". The board is displayed below.";
+    
+    msg.prompt = true;
+    msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+    return msg;
+}
+
+Msg Game::handleHit() {
+    Msg msg;
+
+    Card card = shoe.draw();
+    playerHands[playerIdx].addCard(card);
+
+    // If we bust, then let the player know and move onto the next hand 
+    if (playerHands[playerIdx].busted) {
+        fillMsg(msg);
+
+        playerIdx++;
+        // We busted the last hand, so conclude it 
+        if (playerIdx == playerHands.size()) {
+            return concludeHand();
+        }
+
+        msg.prevActionConfirmation = "You bust!";
+
+        msg.prompt = true;
+        msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+
+        return msg;
+
+    // If no bust, then continue prompting the player
+    } else {
+        fillMsg(msg);
+        msg.prevActionConfirmation = "You drew a " + card.getString();
+        
+        msg.prompt = true;
+        msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+
+        return msg;
+    }
+}
+
+Msg Game::handleStand() {
+    Msg msg;
+
+    playerIdx++;
+    // If there are more hands, then request action on them
+    if (playerIdx != playerHands.size()) {
+        fillMsg(msg);
+        msg.prompt = true;
+        msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+        return msg;
+    }
+
+    // If this is the final hand, then resolve the dealer and conclude hand 
+    dealerHand.cards[1].setObscured(false);
+    while (!dealerHand.busted && dealerHand.values.back() < 17) {
+        dealerHand.addCard(shoe.draw());
+    }
+
+    return concludeHand();
+}
+
+Msg Game::concludeHand() {
+    Msg msg;
+
+    // Calculate payouts 
+    uint32_t winnings = 0;
+    for (uint8_t idx = 0; idx < playerIdx; ++idx) {
+        if (dealerHand.busted ||
+                (dealerHand.values.back() < playerHands[idx].values.back())) {
+            winnings += 2 * playerHands[idx].betAmt;
+
+        } else if (dealerHand.values.back() == playerHands[idx].values.back()) {
+            winnings += playerHands[idx].betAmt;
+
+        }
+    }
+    stackSize += winnings;
+
+    fillMsg(msg);
+
+    activeBoard = false;
+    resetBoard();
+
+    msg.prevActionConfirmation = "Hand over! You receive $" + std::to_string(winnings);
+    msg.prompt = true;
+    msg.actionPrompt = "Option: bet";
+
+    return msg;
+}
+
+Msg Game::processInput(std::string input) {
 
     // Adding Chips
     if (std::regex_match(input, addPattern)) {
-        
         uint32_t addValue = std::stoi(input.substr(3));
-        buyIn += addValue;
-        stackSize += addValue;
 
-        msg.prevActionConfirmation = "You have added $" + 
-                                     std::to_string(addValue) + 
-                                     " to your stack. Your new stack size is $" +
-                                     std::to_string(stackSize) + 
-                                     ".";
-
-        msg.stackSize = stackSize;
-        msg.showBoard = activeBoard;
-        msg.dealerHand = dealerHand;
-        msg.playerHands = playerHands;
-        msg.prompt = false;
-        return msg;
+        return handleAdd(addValue);
 
     // Attempting to start a round 
     } else if (std::regex_match(input, betPattern) || 
@@ -52,157 +201,29 @@ Msg Game::processInput(std::string input) {
             prevBet = betAmt;
         }
 
-        if (betAmt > stackSize) {
-            msg.prevActionConfirmation = "Your current stack size is $" +
-                                         std::to_string(stackSize) + 
-                                         ". Please enter a smaller bet size or \
-                                         add more money.";
-            return msg;
-        }
+        return handleBet(betAmt);
 
-
-        // Formally starting round
-        activeBoard = true;
-        msg.prevActionConfirmation = "You have bet $" + std::to_string(betAmt) +
-                                     ". The board is displayed below.";
-
-        stackSize -= betAmt;
-
-        // Give the dealer a hand, obscuring the second card
-        dealerHand.addCard(shoe.draw());
-        Card second = shoe.draw();
-        second.setObscured(true);
-        dealerHand.addCard(second);
-
-        // Give the player a hand 
-        Hand newHand;
-        newHand.addCard(shoe.draw());
-        newHand.addCard(shoe.draw());
-        newHand.betAmt = betAmt;
-        playerHands.push_back(newHand);
-
-        // Check for blackjack TODO 
-
-        // Send hands 
-        msg.stackSize = stackSize;
-
-        msg.showBoard = activeBoard;
-        msg.dealerHand = dealerHand;
-        msg.playerHands = playerHands;
-        
-        msg.prompt = true;
-        msg.actionPrompt = "Option: hit or stand";
-        return msg;
-
+    // Player hits
     } else if (input == "h") {
         
         if (!activeBoard) {
             goto invalidLabel;
         }
-        Card card = shoe.draw();
-        playerHands[0].addCard(card);
 
-        // If we bust, then let the player know
-        if (playerHands[0].busted) {
-            activeBoard = false;
+        return handleHit();
 
-            msg.prevActionConfirmation = "You bust!";
-            msg.stackSize = stackSize;
-
-            msg.showBoard = true;
-            msg.dealerHand = dealerHand;
-            msg.playerHands = playerHands;
-            resetBoard();
-
-            msg.prompt = true;
-            msg.actionPrompt = "Option: bet";
-
-            return msg;
-
-        // If no bust, then continue prompting the player
-        } else {
-            msg.prevActionConfirmation = "You drew a " + card.getString();
-            msg.stackSize = stackSize;
-
-            msg.showBoard = activeBoard;
-            msg.dealerHand = dealerHand;
-            msg.playerHands = playerHands;
-            
-            msg.prompt = true;
-            msg.actionPrompt = "Option: hit or stand";
-
-            return msg;
-        }
-
+    // Player stands
     } else if (input == "s") {
 
         if (!activeBoard) {
             goto invalidLabel;
         }
-        
-        // Unobscure second card and deal out dealer
-        dealerHand.cards[1].setObscured(false);
-        while (!dealerHand.busted && dealerHand.values.back() < 17) {
-            dealerHand.addCard(shoe.draw());
-        }
 
-        // Dealer loses
-        if (dealerHand.busted || 
-                (dealerHand.values.back() < playerHands[0].values.back()) ) {
+        return handleStand();
 
-            activeBoard = false;
-
-            msg.prevActionConfirmation = "You win!";
-            stackSize += 2 * playerHands[0].betAmt;
-            msg.stackSize = stackSize;
-
-            msg.showBoard = true;
-            msg.dealerHand = dealerHand;
-            msg.playerHands = playerHands;
-            resetBoard();
-
-            msg.prompt = true;
-            msg.actionPrompt = "Option: bet";
-
-            return msg;
-
-        // Draw
-        } else if (dealerHand.values.back() == playerHands[0].values.back()) {
-            activeBoard = false;
-
-            msg.prevActionConfirmation = "Draw!";
-            stackSize += playerHands[0].betAmt;
-            msg.stackSize = stackSize;
-
-            msg.showBoard = true;
-            msg.dealerHand = dealerHand;
-            msg.playerHands = playerHands;
-            resetBoard();
-
-            msg.prompt = true;
-            msg.actionPrompt = "Option: bet";
-            
-            return msg;
-
-        // Dealer wins
-        } else {
-            activeBoard = false;
-
-            msg.prevActionConfirmation = "You lose!";
-            msg.stackSize = stackSize;
-
-            msg.showBoard = true;
-            msg.dealerHand = dealerHand;
-            msg.playerHands = playerHands;
-            resetBoard();
-
-            msg.prompt = true;
-            msg.actionPrompt = "Option: bet";
-
-            return msg;
-        }
-
+    // Player exits
     } else if (input == "e") {
+        Msg msg;
         msg.prevActionConfirmation = 
             "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
             " and ended up with up with $" + std::to_string(stackSize) + 
@@ -219,15 +240,9 @@ Msg Game::processInput(std::string input) {
     }
 
 invalidLabel:
+    Msg msg;
+    fillMsg(msg);
     msg.prevActionConfirmation = "Invalid Action -> Please Try Again";
-    msg.stackSize = stackSize;
-    msg.showBoard = false;
-    if (activeBoard) {
-        msg.showBoard = true;
-        msg.dealerHand = dealerHand;
-        msg.playerHands = playerHands;
-    }
-
     msg.prompt = false;
     // TODO: Add Detailed Response Here 
     return msg;
