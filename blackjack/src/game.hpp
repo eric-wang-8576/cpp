@@ -19,6 +19,7 @@ private:
     // Money State
     uint32_t buyIn;
     uint32_t stackSize;
+    uint32_t tips;
 
     // Hand State
     Hand dealerHand;
@@ -36,10 +37,11 @@ private:
 public:
     Game() : 
         activeBoard(false),
-        buyIn(500), 
-        stackSize(500), 
+        buyIn(0), 
+        stackSize(0), 
         shoe(6),
         prevBet(100),
+        tips(0),
         gameOver(false) {}
 
     // Copy Board Status

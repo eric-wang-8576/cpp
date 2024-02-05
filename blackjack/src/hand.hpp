@@ -6,13 +6,13 @@ class Hand {
     // contains the possible <= 21 values of the hand
     
     // player controlled
-    bool isBlackJack;
     bool busted;
 
     void updateValues();
 
 public:
     bool obscured;
+    bool isBlackJack;
     std::vector<uint8_t> values;
     std::vector<Card> cards;
     uint32_t betAmt;// TODO: Make this private

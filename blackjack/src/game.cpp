@@ -1,9 +1,10 @@
 #include "game.hpp"
+#include <sys/ioctl.h>
 
 std::regex addPattern("a\\s\\$\\d+");
-
 std::regex betPattern("b\\s\\$\\d+");
 std::regex betPattern2("b");
+std::regex tipPattern("t\\s\\$\\d+");
 
 void Game::resetBoard() {
     Hand hand;
@@ -51,6 +52,12 @@ Msg Game::handleBet(uint32_t betAmt) {
     Msg msg;
     fillMsg(msg);
 
+    std::cout << std::endl;
+    for(int i = 0; i < 80; ++i) {
+        std::cout << "*";
+    }
+    std::cout << std::endl;
+
     // Early return if insufficient chips 
     if (betAmt > stackSize) {
         msg.prevActionConfirmation = "Your current stack size is $" +
@@ -79,7 +86,11 @@ Msg Game::handleBet(uint32_t betAmt) {
     playerHands.push_back(newHand);
     playerIdx = 0;
 
-    // Check for blackjack TODO 
+    // Check for blackjack 
+    if (dealerHand.isBlackJack || playerHands[0].isBlackJack) {
+        playerIdx++;
+        return concludeHand();
+    }
 
     // Populate msg 
     fillMsg(msg);
@@ -128,6 +139,8 @@ Msg Game::handleHit() {
 
 Msg Game::handleStand() {
     Msg msg;
+
+    msg.prevActionConfirmation = "You stood on hand #" + std::to_string(playerIdx + 1);
 
     playerIdx++;
     // If there are more hands, then request action on them
@@ -203,7 +216,9 @@ Msg Game::concludeHand() {
     // Calculate payouts 
     uint32_t winnings = 0;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        if (dealerHand.isBusted() ||
+        if (playerHands[idx].isBlackJack && !dealerHand.isBlackJack) {
+            winnings += 2 * playerHands[idx].betAmt + playerHands[idx].betAmt / 2;
+        } else if (dealerHand.isBusted() ||
                 (dealerHand.values.back() < playerHands[idx].values.back())) {
             winnings += 2 * playerHands[idx].betAmt;
 
@@ -320,13 +335,27 @@ Msg Game::processInput(std::string input) {
 
         return handleSplit();
 
+    // Tip the dealer
+    } else if (std::regex_match(input, tipPattern)) {
+        uint32_t tipValue = std::stoi(input.substr(3));
+        stackSize -= tipValue;
+        tips += tipValue;
+
+        Msg msg;
+        fillMsg(msg);
+        msg.prevActionConfirmation = "You tipped the dealer $" + std::to_string(tipValue);
+        msg.showBoard = false;
+        msg.prompt = false;
+        return msg;
+
     // Player exits
     } else if (input == "e") {
         Msg msg;
         msg.prevActionConfirmation = 
             "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
             " and ended up with up with $" + std::to_string(stackSize) + 
-            ".\nTotal PNL: " + std::to_string((int)stackSize - (int)buyIn);
+            ".\nYou tipped $" + std::to_string(tips) +
+            ".\n\nTotal PNL: " + std::to_string((int)stackSize - (int)buyIn - (int)tips);
         msg.stackSize = stackSize;
         msg.showBoard = false;
         msg.prompt = false;

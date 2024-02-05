@@ -22,7 +22,8 @@ void Msg::print() {
         }
         std::cout << boardBorder << std::endl;
     }
-    std::cout << "STACK SIZE: $" << stackSize << std::endl;
+
+    std::cout << "\n\t♦♦♦  $" << stackSize << "  ♦♦♦\n" << std::endl;
 
     if (prompt) {
         std::cout << std::endl;
@@ -30,10 +31,7 @@ void Msg::print() {
         std::cout << std::endl;
     }
 
-
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
+    for (uint8_t i = 0; i < 5; ++i) {
+        std::cout << std::endl;
+    }
 }
