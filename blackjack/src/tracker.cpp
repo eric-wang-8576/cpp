@@ -9,7 +9,7 @@
 
 #include "strategy.hpp"
 
-#define NUMTRIALS 1000000
+#define NUMTRIALS 100000
 
 int main() {
 
@@ -68,7 +68,7 @@ int main() {
 
 
         msg = game.processInput("e");
-//        msg.print();
+        msg.print();
     }
 
     std::cout << "# of times made it to $1,000: " << numWin << std::endl;
