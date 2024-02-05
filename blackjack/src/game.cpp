@@ -324,8 +324,8 @@ Msg Game::processInput(std::string input) {
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
-                                         ". Please add more money \
-                                         to perform this action.";
+                                         ". Please add more money " +
+                                         "to perform this action.";
             msg.prompt = false;
             return msg;
         }
@@ -348,8 +348,8 @@ Msg Game::processInput(std::string input) {
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
-                                         ". Please add more money \
-                                         to perform this action.";
+                                         ". Please add more money " +
+                                         "to perform this action.";
             msg.prompt = false;
             return msg;
         }
@@ -365,8 +365,8 @@ Msg Game::processInput(std::string input) {
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
-                                         ". Please add more money \
-                                         to perform this action.";
+                                         ". Please add more money " +
+                                         "to perform this action.";
             msg.prompt = false;
             return msg;
         }
