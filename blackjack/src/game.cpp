@@ -62,8 +62,8 @@ Msg Game::handleBet(uint32_t betAmt) {
     if (betAmt > stackSize) {
         msg.prevActionConfirmation = "Your current stack size is $" +
                                      std::to_string(stackSize) + 
-                                     ". Please enter a smaller bet size or \
-                                     add more money.";
+                                     ". Please enter a smaller bet size or " +
+                                     "add more money.";
         msg.prompt = false;
         return msg;
     }
