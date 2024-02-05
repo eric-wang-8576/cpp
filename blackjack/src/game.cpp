@@ -153,7 +153,7 @@ Msg Game::handleStand() {
 
     // If this is the final hand, then resolve the dealer and conclude hand 
     dealerHand.obscured = false;
-    while (!dealerHand.isBusted() && dealerHand.values.back() < 17) {
+    while (dealerHand.shouldDraw()) {
         dealerHand.addCard(shoe.draw());
     }
 
@@ -171,8 +171,7 @@ Msg Game::handleDouble() {
 
     playerIdx++;
     if (playerIdx == playerHands.size()) {
-        dealerHand.obscured = false;
-        while (!dealerHand.isBusted() && dealerHand.values.back() < 17) {
+        while (dealerHand.shouldDraw()) {
             dealerHand.addCard(shoe.draw());
         }
 
@@ -200,6 +199,19 @@ Msg Game::handleSplit() {
     playerHands[playerIdx].popCard();
     playerHands.push_back(newHand);
 
+    // If aces were split, deal both cards and resolve action 
+    if (playerHands[playerIdx].cards[0].getVal() == 11) {
+        playerHands[playerIdx].addCard(shoe.draw());
+        playerHands[playerIdx + 1].addCard(shoe.draw());
+        playerIdx += 2;
+
+        while (dealerHand.shouldDraw()) {
+            dealerHand.addCard(shoe.draw());
+        }
+
+        return concludeHand();
+    }
+
     fillMsg(msg);
     msg.prevActionConfirmation = "You split Hand #" + std::to_string(playerIdx + 1);
     msg.prompt = true;
@@ -215,8 +227,10 @@ Msg Game::concludeHand() {
 
     // Calculate payouts 
     uint32_t winnings = 0;
+    uint32_t invested = 0;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        if (playerHands[idx].isBlackJack && !dealerHand.isBlackJack) {
+        // Only pay out blackjack bonus if it was obtained from the first two cards 
+        if (playerIdx == 1 && playerHands[idx].isBlackJack && !dealerHand.isBlackJack) {
             winnings += 2 * playerHands[idx].betAmt + playerHands[idx].betAmt / 2;
         } else if (dealerHand.isBusted() ||
                 (dealerHand.values.back() < playerHands[idx].values.back())) {
@@ -226,6 +240,7 @@ Msg Game::concludeHand() {
             winnings += playerHands[idx].betAmt;
 
         }
+        invested += playerHands[idx].betAmt;
     }
     stackSize += winnings;
 
@@ -234,7 +249,14 @@ Msg Game::concludeHand() {
     activeBoard = false;
     resetBoard();
 
-    msg.prevActionConfirmation = "Hand over! You receive $" + std::to_string(winnings);
+    if (winnings > invested) {
+        msg.prevActionConfirmation = "You win! You receive $" + std::to_string(winnings);
+    } else if (winnings == invested) {
+        msg.prevActionConfirmation = "Draw! You receive $" + std::to_string(winnings);
+    } else {
+        msg.prevActionConfirmation = "Dealer wins! You receive $" + std::to_string(winnings);
+    }
+
     msg.prompt = true;
     msg.actionPrompt = "Option: bet";
 
@@ -294,26 +316,6 @@ Msg Game::processInput(std::string input) {
         }
 
         if (playerHands[playerIdx].cards.size() != 2) {
-            goto invalidLabel;
-        }
-
-        bool isValid = false;
-        uint8_t val = playerHands[playerIdx].values.back();
-        // 9, 10, or 11 without an ace
-        if (9 <= val && val <= 11) {
-            if (playerHands[playerIdx].cards[0].getVal() != 11 &&
-                playerHands[playerIdx].cards[1].getVal() != 11) {
-                isValid = true;
-            }
-        // 16, 17, or 18 with an ace
-        } else if (16 <= val && val <= 18) {
-            if (playerHands[playerIdx].cards[0].getVal() == 11 ||
-                playerHands[playerIdx].cards[1].getVal() == 11) {
-                isValid = true;
-            }
-        }
-
-        if (!isValid) {
             goto invalidLabel;
         }
 

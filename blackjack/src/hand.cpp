@@ -97,3 +97,11 @@ bool Hand::isBusted() {
 bool Hand::isPair() {
     return (cards.size() == 2 && (cards[0].getString() == cards[1].getString()));
 }
+
+bool Hand::shouldDraw() {
+    // Soft 17
+    if (values.size() == 2 && (values[0] == 7) && (values[1] == 17)) {
+        return true;
+    }
+    return (!busted) && (values.back() < 17);
+}

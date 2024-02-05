@@ -32,6 +32,8 @@ public:
     
     bool isPair();
 
+    bool shouldDraw();
+
     std::string getString();
 };
 
