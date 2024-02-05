@@ -111,13 +111,14 @@ Msg Game::handleHit() {
 
     // If we bust, then let the player know and move onto the next hand 
     if (playerHands[playerIdx].isBusted()) {
-        fillMsg(msg);
 
         playerIdx++;
         // We busted the last hand, so conclude it 
         if (playerIdx == playerHands.size()) {
             return concludeHand();
         }
+
+        fillMsg(msg);
 
         msg.prevActionConfirmation = "You bust!";
 

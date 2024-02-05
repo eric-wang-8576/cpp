@@ -9,8 +9,11 @@
 
 #include "strategy.hpp"
 
-std::string rebuy = "a $500";
-std::string bet = "b $100";
+#define NUMHANDS 100000
+#define BETSIZE 2
+
+std::string rebuy = "a $100";
+std::string bet = "b $2";
 std::string e = "e";
 
 int main() {
@@ -21,10 +24,10 @@ int main() {
     Msg msg;
 
     // Play hands
-    for (uint32_t hand = 0; hand < 10; hand++) {
+    for (uint32_t hand = 0; hand < NUMHANDS; hand++) {
 
         // Start the new hand, getting money if necessary 
-        if (stackSize < 100) {
+        if (stackSize < BETSIZE) {
             msg = Strategy::executeAction(game, rebuy);
             stackSize = msg.stackSize;
         }
@@ -40,7 +43,7 @@ int main() {
 
             // If we need more money for this action, get it
             if (action == "h" || action == "d" || action == "p") {
-                if (stackSize < 100) {
+                if (stackSize < BETSIZE) {
                     msg = Strategy::executeAction(game, rebuy);
                     stackSize = msg.stackSize;
                 }
@@ -49,7 +52,7 @@ int main() {
             msg = Strategy::executeAction(game, action);
             stackSize = msg.stackSize;
 
-            if (iters++ > 6) {
+            if (iters++ > 100) {
                 exit(0);
             }
         }
