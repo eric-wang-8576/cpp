@@ -94,7 +94,7 @@ Msg Game::handleBet(uint32_t betAmt) {
 
     // Populate msg 
     fillMsg(msg);
-    msg.prevActionConfirmation = "You have bet $" + std::to_string(betAmt) +
+    msg.prevActionConfirmation = "You bet $" + std::to_string(betAmt) +
                                  ". The board is displayed below.";
     
     msg.prompt = true;
@@ -293,8 +293,27 @@ Msg Game::processInput(std::string input) {
             goto invalidLabel;
         }
 
+        if (playerHands[playerIdx].cards.size() != 2) {
+            goto invalidLabel;
+        }
+
+        bool isValid = false;
         uint8_t val = playerHands[playerIdx].values.back();
-        if (val < 9 || val > 11) {
+        // 9, 10, or 11 without an ace
+        if (9 <= val && val <= 11) {
+            if (playerHands[playerIdx].cards[0].getVal() != 11 &&
+                playerHands[playerIdx].cards[1].getVal() != 11) {
+                isValid = true;
+            }
+        // 16, 17, or 18 with an ace
+        } else if (16 <= val && val <= 18) {
+            if (playerHands[playerIdx].cards[0].getVal() == 11 ||
+                playerHands[playerIdx].cards[1].getVal() == 11) {
+                isValid = true;
+            }
+        }
+
+        if (!isValid) {
             goto invalidLabel;
         }
 
