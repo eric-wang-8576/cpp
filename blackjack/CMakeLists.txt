@@ -12,4 +12,4 @@ file( GLOB SOURCES src/*.cpp )
 
 include_directories(include /src/)
 
-add_executable( main ${SOURCES} )
+add_executable( player ${SOURCES} )
