@@ -7,7 +7,7 @@
 
 std::string commands = std::string{} + "\n" + 
     "- \'e\': exits the game\n" +
-    "- \'b\': places a default bet $100\n" +
+    "- \'b\': places bet equal to the previous one (default $100)\n" +
     "- \'h\': hit\n" +
     "- \'s\': stand\n" + 
     "- \'d\': double down\n" + 
@@ -23,7 +23,7 @@ int main() {
         std::cout << "~";
     }
     std::cout << std::endl;
-    std::cout << "Welcome to command line Blackjack!" << std::endl;
+    std::cout << "Welcome to Command Line Blackjack!" << std::endl;
     for (int i = 0; i < 35; ++i) {
         std::cout << "~";
     }
