@@ -15,6 +15,7 @@ class Game {
 private:
     // Game State
     bool activeBoard;
+    uint32_t numHands;
 
     // Money State
     uint32_t buyIn;
@@ -37,6 +38,7 @@ private:
 public:
     Game() : 
         activeBoard(false),
+        numHands(0),
         buyIn(0), 
         stackSize(0), 
         shoe(6),

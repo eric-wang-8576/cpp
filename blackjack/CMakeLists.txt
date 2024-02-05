@@ -8,8 +8,11 @@ project(
   LANGUAGES CXX
   DESCRIPTION "Blackjack")
 
-file( GLOB SOURCES src/*.cpp )
+file( GLOB SOURCES src/engine/*.cpp )
 
-include_directories(include /src/)
 
-add_executable( player ${SOURCES} )
+add_executable( player src/player.cpp ${SOURCES} )
+add_executable( bot src/bot.cpp ${SOURCES} )
+
+target_include_directories( player PUBLIC /src/engine )
+target_include_directories( bot PUBLIC /src/engine )

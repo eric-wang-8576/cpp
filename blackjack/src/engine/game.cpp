@@ -72,6 +72,7 @@ Msg Game::handleBet(uint32_t betAmt) {
     // Start the hand 
     activeBoard = true;
     stackSize -= betAmt;
+    numHands++;
 
     // Give the dealer a hand, obscuring the second card
     dealerHand.addCard(shoe.draw());
@@ -388,6 +389,7 @@ Msg Game::processInput(std::string input) {
             "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
             " and ended up with up with $" + std::to_string(stackSize) + 
             ".\nYou tipped $" + std::to_string(tips) +
+            ".\nYou played a total of " + std::to_string(numHands) + " hands" +
             ".\n\nTotal PNL: " + std::to_string((int)stackSize - (int)buyIn);
         msg.stackSize = stackSize;
         msg.showBoard = false;

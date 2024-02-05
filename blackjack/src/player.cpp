@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "game.hpp"
-#include "shoe.hpp"
-#include "hand.hpp"
+#include "engine/game.hpp"
+#include "engine/shoe.hpp"
+#include "engine/hand.hpp"
 
 
 std::string commands = std::string{} + "\n" + 
