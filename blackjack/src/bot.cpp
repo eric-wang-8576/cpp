@@ -11,7 +11,6 @@
 
 #define NUMHANDS 1000000
 #define BETSIZE 2
-#define VERBOSE false
 
 std::string rebuy = "a $100";
 std::string bet = "b $2";

@@ -7,6 +7,7 @@
 #include "engine/game.hpp"
 
 #define DELAY 0 // milliseconds
+#define VERBOSE false
 
 enum ACTION {
     S,
@@ -27,7 +28,7 @@ std::string toString(ACTION a) {
         case H: return "h";
         case D: return "d";
         case P: return "p";
-        default: return "X";
+        default: return "x";
     }
 }
 
@@ -69,8 +70,6 @@ SPLIT pairSplitting[8][10] = {
     {Y, Y, Y, Y, Y, Y, N, N, N, N}, // 2
 };
 
-#define VERBOSE false
-
 // Strategy is called on an active board 
 namespace Strategy {
 
@@ -93,7 +92,7 @@ namespace Strategy {
         uint8_t upCard = msg.dealerHand.cards[0].getVal();
 
         SPLIT s;
-        if (hand.cards.size() >= 2 && hand.isPair()) {
+        if (hand.isPair()) {
             uint8_t value = hand.cards[0].getVal();
             if (value == 11) {
                 s = Y;
@@ -109,7 +108,7 @@ namespace Strategy {
         }
 
         // If we have a soft hand, use the soft total table
-        if (hand.cards.size() >= 2 && hand.isSoft()) {
+        if (hand.isSoft()) {
             uint8_t smallerTotal = hand.values[0];
             ACTION a;
             if (smallerTotal == 10) {
