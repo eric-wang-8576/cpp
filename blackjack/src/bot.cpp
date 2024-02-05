@@ -9,8 +9,9 @@
 
 #include "strategy.hpp"
 
-#define NUMHANDS 100000
+#define NUMHANDS 1000000
 #define BETSIZE 2
+#define VERBOSE false
 
 std::string rebuy = "a $100";
 std::string bet = "b $2";
@@ -58,6 +59,7 @@ int main() {
         }
     }
 
-    Strategy::executeAction(game, e);
+    msg = game.processInput("e");
+    msg.print();
 }
 

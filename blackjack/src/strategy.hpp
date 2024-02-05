@@ -69,20 +69,26 @@ SPLIT pairSplitting[8][10] = {
     {Y, Y, Y, Y, Y, Y, N, N, N, N}, // 2
 };
 
+#define VERBOSE false
+
 // Strategy is called on an active board 
 namespace Strategy {
 
     Msg executeAction(Game& game, std::string action) {
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
 
-        std::cout << "Executing Action: " << action << std::endl;
+        if constexpr(VERBOSE) {
+            std::cout << "Executing Action: " << action << std::endl;
+        }
         Msg msg = game.processInput(action);
-        msg.print();
+        if constexpr(VERBOSE) {
+            msg.print();
+        }
         return msg;
     }
 
     std::string generateAction(Msg& msg) {
-        // If it is a pair and we split, then return a split
+        // If it is a pair, check to see if we split
         Hand& hand = msg.playerHands[msg.playerIdx];
         uint8_t upCard = msg.dealerHand.cards[0].getVal();
 
@@ -102,6 +108,7 @@ namespace Strategy {
             return toString(P);
         }
 
+        // If we have a soft hand, use the soft total table
         if (hand.cards.size() >= 2 && hand.isSoft()) {
             uint8_t smallerTotal = hand.values[0];
             ACTION a;
@@ -126,8 +133,8 @@ namespace Strategy {
             return toString(a);
         }
 
+        // Default to the hard totals table
         uint8_t total = hand.values.back();
-
         if (total <= 8) {
             return toString(H);
         } else if (total >= 17) {
@@ -141,5 +148,6 @@ namespace Strategy {
             return toString(a);
         }
     }
+
 }
 

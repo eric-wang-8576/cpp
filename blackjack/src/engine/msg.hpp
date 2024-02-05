@@ -24,5 +24,7 @@ struct Msg {
 
     bool gameOver;
 
+    bool betInit;
+
     void print();
 };

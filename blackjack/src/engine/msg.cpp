@@ -4,7 +4,17 @@ std::string actionBorder {"--------------"};
 std::string boardBorder {"~~~~~~~~~~~~~~~~~~~~~~~"};
 
 void Msg::print() {
+
+    if (betInit) {
+        std::cout << std::endl;
+        for(int i = 0; i < 80; ++i) {
+            std::cout << "*";
+        }
+        std::cout << std::endl;
+    }
+
     std::cout << std::endl;
+
 
     std::cout << actionBorder << std::endl;
     std::cout << prevActionConfirmation << std::endl;

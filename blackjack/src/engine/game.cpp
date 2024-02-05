@@ -20,6 +20,7 @@ void Game::fillMsg(Msg& msg) {
     msg.playerHands = playerHands;
     msg.playerIdx = playerIdx;
     msg.gameOver = gameOver;
+    msg.betInit = false;
 };
 
 /*
@@ -52,11 +53,6 @@ Msg Game::handleBet(uint32_t betAmt) {
     Msg msg;
     fillMsg(msg);
 
-    std::cout << std::endl;
-    for(int i = 0; i < 80; ++i) {
-        std::cout << "*";
-    }
-    std::cout << std::endl;
 
     // Early return if insufficient chips 
     if (betAmt > stackSize) {
@@ -98,6 +94,7 @@ Msg Game::handleBet(uint32_t betAmt) {
     msg.prevActionConfirmation = "You bet $" + std::to_string(betAmt) +
                                  ". The board is displayed below.";
     
+    msg.betInit = true;
     msg.prompt = true;
     msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
     return msg;
