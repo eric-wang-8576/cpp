@@ -338,6 +338,18 @@ Msg Game::processInput(std::string input) {
     // Tip the dealer
     } else if (std::regex_match(input, tipPattern)) {
         uint32_t tipValue = std::stoi(input.substr(3));
+
+        if (stackSize < tipValue) {
+            Msg msg;
+            fillMsg(msg);
+            msg.prevActionConfirmation = "Your current stack size is $" +
+                                         std::to_string(stackSize) + 
+                                         ". Please add more money \
+                                         to perform this action.";
+            msg.prompt = false;
+            return msg;
+        }
+
         stackSize -= tipValue;
         tips += tipValue;
 
@@ -355,7 +367,7 @@ Msg Game::processInput(std::string input) {
             "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
             " and ended up with up with $" + std::to_string(stackSize) + 
             ".\nYou tipped $" + std::to_string(tips) +
-            ".\n\nTotal PNL: " + std::to_string((int)stackSize - (int)buyIn - (int)tips);
+            ".\n\nTotal PNL: " + std::to_string((int)stackSize - (int)buyIn);
         msg.stackSize = stackSize;
         msg.showBoard = false;
         msg.prompt = false;
