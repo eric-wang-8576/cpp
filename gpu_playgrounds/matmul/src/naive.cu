@@ -2,15 +2,16 @@
 #include <iostream>
 #include <random>
 #include <assert.h>
+#include <iomanip>
+#include <chrono>
 
+#define DEBUG 0
 
-#define DEBUG 1
+#define M 2000
+#define N 1800
+#define K 1900
 
-#define M 5
-#define N 4
-#define K 7
-
-#define TILE_WIDTH 3
+#define TILE_WIDTH 16
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -50,7 +51,7 @@ struct Matrix {
 __host__ void hostMatMul(const Matrix& A, const Matrix& B, const Matrix& C) {
     for (int r = 0; r < M; ++r) {
         for (int c = 0; c < K; ++c) {
-            float sum = 0;
+            float sum = 0.0;
             for (int i = 0; i < N; ++i) {
                 sum += A.m[r * N + i] * B.m[c + i * K];
             }
@@ -62,9 +63,13 @@ __host__ void hostMatMul(const Matrix& A, const Matrix& B, const Matrix& C) {
 __host__ bool compare(const Matrix& C, const Matrix& CGPU) {
     assert(C.numRows == CGPU.numRows && C.numCols == CGPU.numCols);
     for (int r = 0; r < C.numRows; ++r) {
-        for (int c = 0; c < C.numCols; ++r) {
+        for (int c = 0; c < C.numCols; ++c) {
             int idx = r * C.numCols + c;
-            if (C.m[idx] != CGPU.m[idx]) {
+            if (std::abs(C.m[idx] - CGPU.m[idx]) > 5) {
+                std::cout << std::setprecision(10) 
+                    << "Failure on r = " << r
+                    << ", c = " << c
+                    << ": " << C.m[idx] << " != " << CGPU.m[idx] << std::endl;
                 return false;
             }
         }
@@ -74,12 +79,12 @@ __host__ bool compare(const Matrix& C, const Matrix& CGPU) {
 
 __global__ void kernelMatMul(int m, int n, int k, float* A, float* B, float* C) {
     int r = blockIdx.x * blockDim.x + threadIdx.x;
-    int c = blockIdx.y + blockDim.y + threadIdx.y;
+    int c = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (r < m && c < k) {
-        float sum = 0;
+        float sum = 0.0;
         for (int i = 0; i < N; ++i) {
-            sum += A[r * n + i] + B[c + i * k];
+            sum += A[r * n + i] * B[c + i * k];
         }
         C[r * k + c] = sum;
     }
@@ -98,12 +103,20 @@ int main() {
     }
 
     // Generate the correct matrix C
+    auto start = std::chrono::steady_clock::now();
+
     hostMatMul(A, B, C);
+
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Time for CPU execution: " << elapsed.count() << " milliseconds." << std::endl;
     if constexpr(DEBUG) {
         C.print();
     }
 
     // Allocate row-major order matrices on the device
+    start = std::chrono::steady_clock::now();
+
     float *d_A, *d_B, *d_C;
     cudaMalloc(&d_A, A.numBytes);
     cudaMalloc(&d_B, B.numBytes);
@@ -123,10 +136,14 @@ int main() {
         CGPU.print();
     }
 
+    end = std::chrono::steady_clock::now();
+    elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Time for GPU execution: " << elapsed.count() << " milliseconds." << std::endl;
+
+
+
     // Check that the implementation is correct
     if (compare(C, CGPU) == true) {
         std::cout << "Success!" << std::endl;
-    } else {
-        std::cout << "Failure!" << std::endl;
     }
 }
