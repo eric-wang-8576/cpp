@@ -72,16 +72,16 @@ __host__ bool compare(const Matrix& C, const Matrix& CGPU) {
     return true;
 }
 
-__global__ void kernelMatMul(int M, int N, int K, float* A, float* B, float* C) {
+__global__ void kernelMatMul(int m, int n, int k, float* A, float* B, float* C) {
     int r = blockIdx.x * blockDim.x + threadIdx.x;
     int c = blockIdx.y + blockDim.y + threadIdx.y;
 
-    if (r < M && c < K) {
+    if (r < m && c < k) {
         float sum = 0;
         for (int i = 0; i < N; ++i) {
-            sum += A[r * N + i] + B[c + i * K];
+            sum += A[r * n + i] + B[c + i * k];
         }
-        C[r * K + c] = sum;
+        C[r * k + c] = sum;
     }
 }
 
