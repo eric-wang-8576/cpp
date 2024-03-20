@@ -10,7 +10,7 @@
 
 #define DEBUG 0
 
-#define M 15000
+#define M 20000
 #define N 10000
 #define K 15000
 
@@ -95,7 +95,7 @@ __host__ void runNaive(Matrix& A, Matrix& B, Matrix& C) {
     cudaMemcpy(d_B, B.m, B.numBytes, cudaMemcpyHostToDevice);
 
     // Execute kernel
-    dim3 dimGrid((M - 1)/TILE_WIDTH + 1, (K - 1)/TILE_WIDTH + 1, 1);
+    dim3 dimGrid((K - 1)/TILE_WIDTH + 1, (M - 1)/TILE_WIDTH + 1, 1);
     dim3 dimBlock(TILE_WIDTH, TILE_WIDTH, 1);
 
     cudaEventRecord(start);
@@ -167,7 +167,7 @@ __host__ void runTiled(Matrix& A, Matrix& B, Matrix& C) {
     cudaMemcpy(d_B, B.m, B.numBytes, cudaMemcpyHostToDevice);
 
     // Execute kernel
-    dim3 dimGrid((M - 1)/TILE_WIDTH + 1, (K - 1)/TILE_WIDTH + 1, 1);
+    dim3 dimGrid((K - 1)/TILE_WIDTH + 1, (M - 1)/TILE_WIDTH + 1, 1);
     dim3 dimBlock(TILE_WIDTH, TILE_WIDTH, 1);
 
     cudaEventRecord(start);

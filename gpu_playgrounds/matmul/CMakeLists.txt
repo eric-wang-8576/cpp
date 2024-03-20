@@ -6,3 +6,6 @@ add_executable(tiled src/tiled.cu)
 
 set_target_properties(naive PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON)
+
+set_target_properties(tiled PROPERTIES
+    CUDA_SEPARABLE_COMPILATION ON)
