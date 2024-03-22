@@ -1,8 +1,6 @@
-#include <stdio.h>
 #include <iostream>
 #include <random>
 #include <iomanip>
-#include <cuda_runtime.h>
 
 #define DEBUG 0
 
@@ -59,6 +57,7 @@ __global__ void kernelReduction(float* input, float* output, int size) {
     }
     __syncthreads();
 
+    // Perform reduction
     for (int stride = blockSize / 2; stride > 0; stride >>= 1) {
         if (tx < stride) {
             partialSum[tx] += partialSum[tx + stride];
@@ -66,6 +65,7 @@ __global__ void kernelReduction(float* input, float* output, int size) {
         }
     }
 
+    // Write final output value
     output[bx] = partialSum[0];
 }
 
@@ -90,13 +90,12 @@ int main() {
     cudaMemcpy(d_input, input, N * sizeof(float), cudaMemcpyHostToDevice);
 
     // Execute kernel
-    // Each block computes one value 
     dim3 dimGrid(numBlocks, 1, 1);
     dim3 dimBlock(BLOCK_SIZE, 1, 1);
 
     kernelReduction<<<dimGrid, dimBlock>>>(d_input, d_output, N);
     
-    // Copy results back to host
+    // Copy results back to host, and perform final reduction
     float* output = (float*) malloc(numBlocks * sizeof(float));
     cudaMemcpy(output, d_output, numBlocks * sizeof(float), cudaMemcpyDeviceToHost);
     float actualSum = hostReduction(output, numBlocks);
@@ -105,6 +104,7 @@ int main() {
         print(output, numBlocks);
     }
 
+    // Compare results
     if (compare(expectedSum, actualSum)) {
         std::cout << "Success!" << std::endl;
     } else {

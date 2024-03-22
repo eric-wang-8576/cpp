@@ -1,10 +1,8 @@
-#include <stdio.h>
 #include <iostream>
 #include <random>
 #include <iomanip>
-#include <cuda_runtime.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define N 10000000
 
@@ -36,8 +34,8 @@ __host__ void hostHistogram(int* A, int size, int* hist) {
 __host__ bool compare(int* expected, int* actual) {
     for (int i = 0; i < NUM_BINS; ++i) {
         if (expected[i] != actual[i]) {
-            std::cout << std::setprecision(10) 
-                << "expected = " << expected[i]
+            std::cout << "For index i = " << i 
+                << ", expected = " << expected[i]
                 << ", actual = " << actual[i] << std::endl;
             return false;
         }
@@ -102,7 +100,6 @@ int main() {
     cudaMemcpy(d_input, input, N * sizeof(int), cudaMemcpyHostToDevice);
 
     // Execute kernel
-    // Each block computes one value 
     dim3 dimGrid(NUM_BLOCKS, 1, 1);
     dim3 dimBlock(BLOCK_SIZE, 1, 1);
 
@@ -116,6 +113,7 @@ int main() {
         printHistogram(actualHist);
     }
 
+    // Compare results
     if (compare(expectedHist, actualHist)) {
         std::cout << "Success!" << std::endl;
     } else {

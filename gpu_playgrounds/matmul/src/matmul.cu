@@ -1,10 +1,8 @@
-#include <stdio.h>
 #include <iostream>
 #include <random>
-#include <assert.h>
 #include <iomanip>
 #include <chrono>
-#include <cuda_runtime.h>
+#include <assert.h>
 
 #define DEBUG 0
 
@@ -165,11 +163,13 @@ int main() {
         B.print();
     }
 
+    // CPU Execution
     hostMatMul(A, B, CCPU);
     if constexpr(DEBUG) {
         CCPU.print();
     }
 
+    // GPU Execution
     gpuMatMul(A, B, CGPU);
     if constexpr(DEBUG) {
         CGPU.print();

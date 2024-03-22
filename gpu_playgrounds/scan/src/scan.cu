@@ -1,8 +1,5 @@
-#include <stdio.h>
 #include <iostream>
 #include <random>
-#include <iomanip>
-#include <cuda_runtime.h>
 
 #define DEBUG 0
 
@@ -29,10 +26,11 @@ __host__ void hostScan(int* A, int size, int* scan) {
 }
 
 __host__ void print(int* A, int size) {
+    std::cout << "[ ";
     for (int i = 0; i < size; ++i) {
         std::cout << A[i] << ", ";
     }
-    std::cout << std::endl;
+    std::cout << "]" << std::endl;
 }
 
 __host__ bool compare(int* expected, int size, int* actual) {
@@ -159,7 +157,7 @@ int main() {
         print(expectedScan, N);
     }
 
-    // Calculate gpu Scan
+    // Calculate GPU Scan
     int actualScan[N];
     gpuScan(input, N, actualScan);
 
@@ -167,6 +165,7 @@ int main() {
         print(actualScan, N);
     }
 
+    // Compare results
     if (compare(expectedScan, N, actualScan)) {
         std::cout << "Success!" << std::endl;
     } else {
