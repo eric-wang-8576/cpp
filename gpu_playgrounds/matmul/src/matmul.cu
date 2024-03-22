@@ -6,13 +6,11 @@
 #include <chrono>
 #include <cuda_runtime.h>
 
-// TODO: Organize tiled.cu and naive.cu into different files, modify CMakeLists.txt
-
 #define DEBUG 0
 
-#define M 20000
-#define N 10000
-#define K 15000
+#define M 2000
+#define N 1000
+#define K 1500
 
 #define TILE_WIDTH 16
 
@@ -68,54 +66,23 @@ __host__ bool compare(const Matrix& C, const Matrix& CGPU) {
     return true;
 }
 
-__global__ void naiveMatMul(int m, int n, int k, float* A, float* B, float* C) {
-    int r = blockIdx.y * blockDim.y + threadIdx.y;
-    int c = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (r < m && c < k) {
-        float sum = 0.0;
-        for (int i = 0; i < N; ++i) {
-            sum += A[r * n + i] * B[c + i * k];
+__host__ void hostMatMul(const Matrix& A, const Matrix& B, const Matrix& C) {
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int r = 0; r < M; ++r) {
+        for (int c = 0; c < K; ++c) {
+            float sum = 0.0;
+            for (int i = 0; i < N; ++i) {
+                sum += A.m[r * N + i] * B.m[c + i * K];
+            }
+            C.m[r * K + c] = sum;
         }
-        C[r * k + c] = sum;
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "Time for CPU matmul execution: " << duration.count() << " milliseconds." << std::endl;
 }
 
-// Multiples A and B, puts the result into C
-__host__ void runNaive(Matrix& A, Matrix& B, Matrix& C) {
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start); 
-    cudaEventCreate(&stop);
-
-    float *d_A, *d_B, *d_C;
-    cudaMalloc(&d_A, A.numBytes);
-    cudaMalloc(&d_B, B.numBytes);
-    cudaMalloc(&d_C, C.numBytes);
-    cudaMemcpy(d_A, A.m, A.numBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, B.m, B.numBytes, cudaMemcpyHostToDevice);
-
-    // Execute kernel
-    dim3 dimGrid((K - 1)/TILE_WIDTH + 1, (M - 1)/TILE_WIDTH + 1, 1);
-    dim3 dimBlock(TILE_WIDTH, TILE_WIDTH, 1);
-
-    cudaEventRecord(start);
-
-    naiveMatMul<<<dimGrid, dimBlock>>>(M, N, K, d_A, d_B, d_C);
-
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-
-    float ms = 0;
-    cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "Time for GPU naive execution: " << ms << " milliseconds." << std::endl;
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
-
-    // Copy results back to host
-    cudaMemcpy(C.m, d_C, C.numBytes, cudaMemcpyDeviceToHost);
-}
-
-__global__ void tiledMatMul(int m, int n, int k, float* A, float* B, float* C) {
+__global__ void kernelMatMul(int m, int n, int k, float* A, float* B, float* C) {
     __shared__ float ds_A[TILE_WIDTH][TILE_WIDTH];
     __shared__ float ds_B[TILE_WIDTH][TILE_WIDTH];
 
@@ -154,7 +121,7 @@ __global__ void tiledMatMul(int m, int n, int k, float* A, float* B, float* C) {
     }
 }
 
-__host__ void runTiled(Matrix& A, Matrix& B, Matrix& C) {
+__host__ void gpuMatMul(Matrix& A, Matrix& B, Matrix& C) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start); 
     cudaEventCreate(&stop);
@@ -171,14 +138,14 @@ __host__ void runTiled(Matrix& A, Matrix& B, Matrix& C) {
     dim3 dimBlock(TILE_WIDTH, TILE_WIDTH, 1);
 
     cudaEventRecord(start);
-    tiledMatMul<<<dimGrid, dimBlock>>>(M, N, K, d_A, d_B, d_C);
+    kernelMatMul<<<dimGrid, dimBlock>>>(M, N, K, d_A, d_B, d_C);
     cudaEventRecord(stop);
 
     cudaEventSynchronize(stop);
 
     float ms = 0;
     cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "Time for GPU tiled execution: " << ms << " milliseconds." << std::endl;
+    std::cout << "Time for GPU matmul execution: " << ms << " milliseconds." << std::endl;
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
 
@@ -190,26 +157,26 @@ int main() {
     // Generate random A and B matrices
     Matrix A("A", M, N, true);
     Matrix B("B", N, K, true);
-    Matrix CNaiveTest("C Naive", M, K, false);
-    Matrix CTiledTest("C Tiled", M, K, false);
+    Matrix CCPU("C CPU", M, K, false);
+    Matrix CGPU("C GPU", M, K, false);
 
     if constexpr(DEBUG) {
         A.print();
         B.print();
     }
 
-    runNaive(A, B, CNaiveTest);
+    hostMatMul(A, B, CCPU);
     if constexpr(DEBUG) {
-        CNaiveTest.print();
+        CCPU.print();
     }
 
-    runTiled(A, B, CTiledTest);
+    gpuMatMul(A, B, CGPU);
     if constexpr(DEBUG) {
-        CTiledTest.print();
+        CGPU.print();
     }
 
     // Check that the implementation is correct
-    if (compare(CNaiveTest, CTiledTest) == true) {
+    if (compare(CCPU, CGPU) == true) {
         std::cout << "Success!" << std::endl;
     }
 }
