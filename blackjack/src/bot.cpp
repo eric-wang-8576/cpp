@@ -10,10 +10,10 @@
 #include "strategy.hpp"
 
 #define NUMHANDS 1000000
-#define BETSIZE 2
+#define BETSIZE 10
 
 std::string rebuy = "a $100";
-std::string bet = "b $2";
+std::string bet = "b $10";
 std::string e = "e";
 
 int main() {
