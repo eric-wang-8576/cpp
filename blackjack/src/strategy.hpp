@@ -43,7 +43,7 @@ ACTION hardTotals[8][10] = {
     {S, S, S, S, S, H, H, H, H, H}, // 15 
     {S, S, S, S, S, H, H, H, H, H}, // 14
     {S, S, S, S, S, H, H, H, H, H}, // 13
-    {H, H, S, S, S, H, H, H, H, H}, // 12
+    {D, D, D, D, D, D, D, D, D, D}, // 12
     {D, D, D, D, D, D, D, D, D, D}, // 11
     {D, D, D, D, D, D, D, D, H, H}, // 10
     {H, D, D, D, D, H, H, H, H, H}, // 9
