@@ -5,40 +5,70 @@
 
 // lo and hi must be in range
 void IntervalTracker::setRange(int lo, int hi, bool boolVal) {
+    bool lastBoolVal = intervals.begin()->second; // Value of the last flag we overwrite
+
     auto it = intervals.upper_bound(lo);
 
     // Check to see if we need to write in lo
     if (it != intervals.begin()) {
-        auto prev = std::prev(it);
-        if (prev->second != boolVal && lo != it->first) {
-            intervals[lo] = boolVal;
+        auto prev = std::prev(it); // possible for prev to be equal to lo here
+        if (prev->first == lo) {
+            if (prev->second == boolVal) {
+                // do nothing
+                lastBoolVal = prev->second;
+            } else {
+                // kill the flag, move onto the next guy 
+                if (prev == intervals.begin()) {
+                    lastBoolVal = prev->second;
+                    prev->second = boolVal;
+                } else {
+                    lastBoolVal = prev->second;
+                    intervals.erase(prev);
+                }
+            }
+        } else {
+            if (prev->second == boolVal) {
+                // do nothing
+                lastBoolVal = prev->second;
+            } else {
+                // write new flag
+                lastBoolVal = prev->second;
+                intervals[lo] = boolVal;
+            }
         }
     } else {
+        lastBoolVal = boolVal; // check for accuracy
         it->second = boolVal;
     }
 
-    // Erase intermediate values and potentially an irrelevant value outside range
-    hi++;
-    boolVal = !boolVal;
-    if (it->first == lo) {
-        it++;
-    }
+    // Erase intermediate flags and potentially an irrelevant flag outside range
     while (it != intervals.end()) {
         // If you are in the range, you are definitely overwritten
         if (it->first <= hi) {
+            lastBoolVal = it->second;
             it = intervals.erase(it);
         } else {
-            // If the next guy agrees with us, it's redundant
-            if (it->second == boolVal) {
-                intervals.erase(it);
-            }
             break;
         }
     }
 
-    // Write in range end
-    if (hi <= maxVal) {
-        intervals[hi] = boolVal;
+    // Write in range end if the last guy disagreed with us and we aren't overwriting 
+    if (lastBoolVal == boolVal) {
+        // do nothing
+    } else {
+        // if the next space is occupied (by invariant must be boolVal, kill it
+        // otherwise, write in the correct value
+        if (it != intervals.end()) {
+            if (it->first == hi + 1) {
+                intervals.erase(it);
+            } else {
+                intervals[hi + 1] = lastBoolVal;
+            }
+        } else {
+            if (hi + 1 <= maxVal) {
+                intervals[hi + 1] = lastBoolVal;
+            }
+        }
     }
 }
 
@@ -47,9 +77,9 @@ bool IntervalTracker::contains(int val) {
     auto it = intervals.upper_bound(val);
     if (it != intervals.begin()) {
         auto prev = std::prev(it);
-        return it->first == val ? it->second : prev->second;
+        return prev->second;
     }
-    return it->second;
+    return intervals.end()->second;
 }
 
 void IntervalTracker::print() {

@@ -3,8 +3,8 @@
 #include <utility>
 
 #define MINVAL 0
-#define MAXVAL 9
-#define NUMTRIALS 10
+#define MAXVAL 1000
+#define NUMTRIALS 1000
 #define DEBUG 1
 
 int main() {
@@ -36,7 +36,7 @@ int main() {
         for (int i = first; i <= second; ++i) {
             bitvec[i - MINVAL] = boolVal;
         }
-        t.setRange(first, second, false);
+        t.setRange(first, second, boolVal);
         bitvec2 = t.genBitVector();
 
         if constexpr(DEBUG) {
@@ -47,15 +47,32 @@ int main() {
             std::cout << "]" << std::endl;
 
 
+            t.print();
             std::cout << "[";
             for (int i = 0; i < MAXVAL - MINVAL + 1; ++i) {
                 std::cout << bitvec2[i] << ", ";
             }
             std::cout << "]" << std::endl;
+            std::cout << std::endl;
         }
 
         // Compare
         if (bitvec != bitvec2) {
+
+            std::cout << "[";
+            for (int i = 0; i < MAXVAL - MINVAL + 1; ++i) {
+                std::cout << bitvec[i] << ", ";
+            }
+            std::cout << "]" << std::endl;
+
+
+            t.print();
+            std::cout << "[";
+            for (int i = 0; i < MAXVAL - MINVAL + 1; ++i) {
+                std::cout << bitvec2[i] << ", ";
+            }
+            std::cout << "]" << std::endl;
+            std::cout << std::endl;
             std::cout << "FAIL" << std::endl;
             return 0;
         }
