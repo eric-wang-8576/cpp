@@ -12,3 +12,6 @@ file( GLOB SOURCES src/*.cpp)
 
 add_executable( main main.cpp ${SOURCES} )
 target_include_directories( main PUBLIC include )
+
+add_executable( tracker_test tracker_test.cpp ${SOURCES} )
+target_include_directories( tracker_test PUBLIC include )
