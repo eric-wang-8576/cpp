@@ -6,10 +6,18 @@ class IntervalTracker {
     const int minVal;
     const int maxVal;
 
-    // If intervals[idx] = boolVal, then all values starting at idx and ending with the next key
+    // Invariant #1
+    // - If intervals[idx] = boolVal, then all values starting at idx and ending with the next largest key
     //   are boolVal
-    // Invariant that ranges will always alternate
-    // If empty, all values are by default false
+    //
+    // Invariant #2
+    // - If intervals[idx1] = boolVal, then the next largest key idx2 will have intervals[idx2] = !boolVal
+    //
+    // Invariant #3
+    // - There will always be at least one interval, starting at value 0 and explicitly initialized
+    // 
+    // Invariant #4
+    // - All indices will be in the range [minVal, maxVal]
     std::map<int, bool> intervals;
 
 public:

@@ -2,9 +2,9 @@
 #include <random>
 #include <utility>
 
-#define MINVAL 0
-#define MAXVAL 1000
-#define NUMTRIALS 1000
+#define MINVAL 10
+#define MAXVAL 25
+#define NUMTRIALS 10000
 #define DEBUG 1
 
 int main() {
