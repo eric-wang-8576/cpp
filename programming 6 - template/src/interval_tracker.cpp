@@ -1,7 +1,17 @@
 #include "interval_tracker.hpp"
 
-// The function std::map.upper_bound() returns an iterator to the first element in the map
-//   whose key is greater than the specified key 
+// Invariant #1
+// - If intervals[idx] = boolVal, then all values starting at idx and ending with the next largest key
+//   are boolVal
+//
+// Invariant #2
+// - If intervals[idx1] = boolVal, then the next largest key idx2 will have intervals[idx2] = !boolVal
+//
+// Invariant #3
+// - There will always be at least one interval, starting at value 0 and explicitly initialized
+// 
+// Invariant #4
+// - All indices will be in the range [minVal, maxVal]
 
 /*
  * Assumed that both lo and hi are in range
