@@ -163,6 +163,7 @@ class PacketGenerator {
   int numConfigPackets = 0;
   int configAddressMask;
   std::vector<PacketStruct> trains;
+public:
   PacketGenerator(
     int numAddressesLog,
     int numTrainsLog,
