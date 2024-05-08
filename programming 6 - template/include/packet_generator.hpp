@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include "randomgenerator.hpp"
+#include "random_generator.hpp"
 
 struct Config {
   int address;

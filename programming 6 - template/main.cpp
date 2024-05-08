@@ -1,5 +1,5 @@
 #include <iostream>
-#include "packetgenerator.hpp"
+#include "packet_generator.hpp"
 
 int main() {
     int numAddressesLog = 5;

@@ -1,4 +1,4 @@
-#include "randomgenerator.hpp"
+#include "random_generator.hpp"
 
 int RandomGenerator::getRand() {
     seed = mangle(seed) + 1;
