@@ -8,13 +8,13 @@
 // - If intervals[idx1] = boolVal, then the next largest key idx2 will have intervals[idx2] = !boolVal
 //
 // Invariant #3
-// - There will always be at least one interval, starting at value 0 and explicitly initialized
+// - There will always be at least one interval, starting at value minVal and explicitly initialized
 // 
 // Invariant #4
 // - All indices will be in the range [minVal, maxVal]
 
 /*
- * Assumed that both lo and hi are in range
+ * Assumed that both lo and hi are in [minVal, maxVal] and lo <= hi
  */
 void IntervalTracker::setRange(int lo, int hi, bool boolVal) {
     bool lastBoolVal; // value of the last flag that we overwrite

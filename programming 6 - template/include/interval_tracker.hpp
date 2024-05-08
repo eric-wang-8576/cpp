@@ -6,6 +6,7 @@ class IntervalTracker {
     const int minVal;
     const int maxVal;
 
+
     // Invariant #1
     // - If intervals[idx] = boolVal, then all values starting at idx and ending with the next largest key
     //   are boolVal
@@ -14,7 +15,7 @@ class IntervalTracker {
     // - If intervals[idx1] = boolVal, then the next largest key idx2 will have intervals[idx2] = !boolVal
     //
     // Invariant #3
-    // - There will always be at least one interval, starting at value 0 and explicitly initialized
+    // - There will always be at least one interval, starting at value minVal and explicitly initialized
     // 
     // Invariant #4
     // - All indices will be in the range [minVal, maxVal]
