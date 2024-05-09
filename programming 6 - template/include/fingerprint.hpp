@@ -3,6 +3,7 @@ class FingerPrint {
 	inline static const long a = 25214903917L;
 	inline static const long c = 11L;
 
+public:
 	long getFingerprint(long iterations, long startSeed); 
 };
 

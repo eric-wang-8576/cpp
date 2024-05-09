@@ -1,5 +1,8 @@
 #include <iostream>
 #include "packet_generator.hpp"
+#include "packet_processor.hpp"
+
+#define NUMPACKETS 10000
 
 int main() {
     int numAddressesLog = 5;
@@ -26,8 +29,11 @@ int main() {
         acceptingFraction
     };
 
-    for( int i = 0; i < 200000; i++ ) {
-      Packet pkt = gen.getPacket();
-      pkt.printPacket();
+    PacketProcessor p(16, numAddressesLog);
+    for (int i = 0; i < NUMPACKETS; i++) {
+        Packet pkt = gen.getPacket();
+        pkt.printPacket();
+        p.processPacket(pkt);
     }
+    p.dumpHistogram();
 }

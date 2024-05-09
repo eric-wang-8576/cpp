@@ -3,8 +3,8 @@
 #include <algorithm>
 
 class IntervalTracker {
-    const int minVal;
-    const int maxVal;
+    int minVal;
+    int maxVal;
 
 
     // Invariant #1
@@ -22,6 +22,7 @@ class IntervalTracker {
     std::map<int, bool> intervals;
 
 public:
+    IntervalTracker() {}
     IntervalTracker(int minValP, int maxValP) : minVal(minValP), maxVal(maxValP) {
         intervals[minVal] = false;
     }
