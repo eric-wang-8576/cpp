@@ -15,3 +15,6 @@ target_include_directories( main PUBLIC include )
 
 add_executable( tracker_test tracker_test.cpp ${SOURCES} )
 target_include_directories( tracker_test PUBLIC include )
+
+add_executable( threads_test threads_test.cpp ${SOURCES} )
+target_include_directories( threads_test PUBLIC include )

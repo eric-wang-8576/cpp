@@ -3,6 +3,7 @@
 #include "packet_processor.hpp"
 
 #define NUMPACKETS 10000
+#define NUMBINS 16
 
 int main() {
     int numAddressesLog = 5;
@@ -29,7 +30,7 @@ int main() {
         acceptingFraction
     };
 
-    PacketProcessor p(16, numAddressesLog);
+    PacketProcessor p(NUMBINS, numAddressesLog);
     for (int i = 0; i < NUMPACKETS; i++) {
         Packet pkt = gen.getPacket();
         pkt.printPacket();
