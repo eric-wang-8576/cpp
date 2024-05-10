@@ -1,10 +1,12 @@
 #include <map>
 #include <iostream>
 #include <algorithm>
+#include <mutex>
 
 class IntervalTracker {
     int minVal;
     int maxVal;
+    std::mutex mtx;
 
 
     // Invariant #1
@@ -22,10 +24,14 @@ class IntervalTracker {
     std::map<int, bool> intervals;
 
 public:
-    IntervalTracker() {}
     IntervalTracker(int minValP, int maxValP) : minVal(minValP), maxVal(maxValP) {
         intervals[minVal] = false;
     }
+
+    IntervalTracker(const IntervalTracker&) = delete;
+    IntervalTracker& operator=(const IntervalTracker&) = delete;
+    IntervalTracker(IntervalTracker&&) = delete;
+    IntervalTracker& operator=(IntervalTracker&&) = delete;
 
     void setRange(int lo, int hi, bool boolVal);
     bool contains(int val);

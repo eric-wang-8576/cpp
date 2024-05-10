@@ -17,6 +17,8 @@
  * Assumed that both lo and hi are in [minVal, maxVal] and lo <= hi
  */
 void IntervalTracker::setRange(int lo, int hi, bool boolVal) {
+    std::lock_guard<std::mutex> lock(mtx);
+
     bool lastBoolVal; // value of the last flag that we overwrite
 
     auto it = intervals.upper_bound(lo);
@@ -71,6 +73,8 @@ void IntervalTracker::setRange(int lo, int hi, bool boolVal) {
 
 // val must be in range
 bool IntervalTracker::contains(int val) {
+    std::lock_guard<std::mutex> lock(mtx);
+
     auto it = intervals.upper_bound(val);
     if (it != intervals.begin()) {
         auto prev = std::prev(it);

@@ -18,3 +18,8 @@ target_include_directories( tracker_test PUBLIC include )
 
 add_executable( threads_test threads_test.cpp ${SOURCES} )
 target_include_directories( threads_test PUBLIC include )
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
