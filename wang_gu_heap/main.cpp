@@ -18,7 +18,7 @@ int genVal() {
 
 int main() {
     // Create max heaps
-    WangGuHeap wgh;
+    WangGuHeap<int> wgh;
     std::priority_queue<int, std::vector<int>, std::less<int>> pq;
 
     int heapSize;

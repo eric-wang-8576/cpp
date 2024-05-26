@@ -8,7 +8,5 @@ project(
   LANGUAGES CXX
   DESCRIPTION "Wang-Gu Heap")
 
-file( GLOB SOURCES src/*.cpp)
-
-add_executable( main main.cpp ${SOURCES} )
+add_executable( main main.cpp )
 target_include_directories( main PUBLIC include )
