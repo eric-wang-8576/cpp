@@ -150,12 +150,6 @@ Msg Game::handleStand() {
         return msg;
     }
 
-    // If this is the final hand, then resolve the dealer and conclude hand 
-    dealerHand.obscured = false;
-    while (dealerHand.shouldDraw()) {
-        dealerHand.addCard(shoe.draw());
-    }
-
     return concludeHand();
 }
 
@@ -168,12 +162,28 @@ Msg Game::handleDouble() {
     stackSize -= playerHands[playerIdx].betAmt;
     playerHands[playerIdx].betAmt *= 2;
 
-    playerIdx++;
-    if (playerIdx == playerHands.size()) {
-        while (dealerHand.shouldDraw()) {
-            dealerHand.addCard(shoe.draw());
+
+    // If we bust, then let the player know and move onto the next hand 
+    if (playerHands[playerIdx].isBusted()) {
+
+        playerIdx++;
+        // We busted the last hand, so conclude it 
+        if (playerIdx == playerHands.size()) {
+            return concludeHand();
         }
 
+        fillMsg(msg);
+
+        msg.prevActionConfirmation = "You bust!";
+
+        msg.prompt = true;
+        msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+
+        return msg;
+    }
+
+    playerIdx++;
+    if (playerIdx == playerHands.size()) {
         return concludeHand();
 
     } else {
@@ -204,10 +214,6 @@ Msg Game::handleSplit() {
         playerHands[playerIdx + 1].addCard(shoe.draw());
         playerIdx += 2;
 
-        while (dealerHand.shouldDraw()) {
-            dealerHand.addCard(shoe.draw());
-        }
-
         return concludeHand();
     }
 
@@ -222,23 +228,51 @@ Msg Game::handleSplit() {
 Msg Game::concludeHand() {
     Msg msg;
 
+    // Deal the dealer's hands if the player has at least one non-busted hand
+    bool oneNoneBusted = false;
+    for (uint8_t idx = 0; idx < playerIdx; ++idx) {
+        if (!playerHands[idx].isBusted()) {
+            oneNoneBusted = true;
+            break;
+        }
+    }
+
+    if (oneNoneBusted) {
+        while (dealerHand.shouldDraw()) {
+            dealerHand.addCard(shoe.draw());
+        }
+    }
+
     dealerHand.obscured = false;
 
     // Calculate payouts 
-    uint32_t winnings = 0;
-    uint32_t invested = 0;
+    uint32_t winnings = 0; // How much the player ends up winning, 
+                           // including what they initially invested
+    uint32_t invested = 0; // How much the player invested into the hand
+
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        // Only pay out blackjack bonus if it was obtained from the first two cards 
         if (playerIdx == 1 && playerHands[idx].isBlackJack && !dealerHand.isBlackJack) {
+            // Player blacjack, only pay out if obtained from the first two cards
             winnings += 2 * playerHands[idx].betAmt + playerHands[idx].betAmt / 2;
+
+        } else if (playerHands[idx].isBusted() ||
+                (dealerHand.getLastVal() > playerHands[idx].getLastVal())) {
+            // The player loses entirely
+
         } else if (dealerHand.isBusted() ||
-                (dealerHand.values.back() < playerHands[idx].values.back())) {
+                (dealerHand.getLastVal() < playerHands[idx].getLastVal())) {
+            // The player wins entirely 
             winnings += 2 * playerHands[idx].betAmt;
 
-        } else if (dealerHand.values.back() == playerHands[idx].values.back()) {
+        } else if (dealerHand.getLastVal() == playerHands[idx].getLastVal()) {
+            // The player pushes
             winnings += playerHands[idx].betAmt;
 
+        } else {
+            std::cout << "Payout Error" << std::endl;
+            exit(1);
         }
+
         invested += playerHands[idx].betAmt;
     }
     stackSize += winnings;

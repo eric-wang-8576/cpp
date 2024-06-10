@@ -95,7 +95,7 @@ bool Hand::isBusted() {
 }
 
 bool Hand::isPair() {
-    return (cards.size() == 2 && (cards[0].getString() == cards[1].getString()));
+    return (cards.size() == 2 && (cards[0].getVal() == cards[1].getVal()));
 }
 
 bool Hand::isSoft() {
@@ -108,4 +108,11 @@ bool Hand::shouldDraw() {
         return true;
     }
     return (!busted) && (values.back() < 17);
+}
+
+int Hand::getLastVal() {
+    if (values.size() != 0) {
+        return values[values.size() - 1];
+    }
+    return -1;
 }

@@ -34,6 +34,8 @@ public:
 
     bool shouldDraw();
 
+    int getLastVal();
+
     std::string getString();
 };
 
