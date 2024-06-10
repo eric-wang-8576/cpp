@@ -29,19 +29,19 @@ private:
     
 
     // Bet State
-    uint8_t prevBet;
+    uint32_t prevBet;
 
     bool gameOver;
 
     Shoe shoe;
 
 public:
-    Game() : 
+    Game(int numDecks) : 
         activeBoard(false),
         numHands(0),
         buyIn(0), 
         stackSize(0), 
-        shoe(6),
+        shoe(numDecks),
         prevBet(100),
         tips(0),
         gameOver(false) {}

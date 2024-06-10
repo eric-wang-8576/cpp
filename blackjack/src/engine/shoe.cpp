@@ -1,7 +1,7 @@
 #include "shoe.hpp"
 
 Card Shoe::draw() {
-    if (cards.size() < 16) {
+    if (cards.size() < numDecks * 13) {
         shuffle();
     }
 
@@ -9,11 +9,19 @@ Card Shoe::draw() {
     Card ret = cards.back();
     cards.pop_back();
 
+    uint8_t val = ret.getVal();
+    if (2 <= val && val <= 6) {
+        count++;
+    } else if (9 <= val && val <= 11) {
+        count--;
+    }
+
     return ret;
 }
 
 void Shoe::shuffle() {
     cards.clear();
+    count = 0;
 
     for (uint8_t deck = 0; deck < numDecks; deck++) {
         // Add a deck to the shoe

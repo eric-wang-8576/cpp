@@ -38,6 +38,9 @@ void Msg::print() {
     if (prompt) {
         std::cout << std::endl;
         std::cout << "---> " << actionPrompt;
+        if (!dealerHand.obscured) {
+            std::cout << "\t[ " << count << " ]";
+        }
         std::cout << std::endl;
     }
 

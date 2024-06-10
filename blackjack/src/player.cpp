@@ -4,7 +4,6 @@
 #include "engine/shoe.hpp"
 #include "engine/hand.hpp"
 
-
 std::string commands = std::string{} + "\n" + 
     "- \'e\': exits the game\n" +
     "- \'b\': places bet equal to the previous one (default $100)\n" +
@@ -16,7 +15,14 @@ std::string commands = std::string{} + "\n" +
     "- \'b $XXX\': places a bet of $XXX\n" +
     "- \'t $XXX\': tips the dealer $XXX\n\n";
 
-int main() {
+int main(int numArgs, char** argv) {
+    if (numArgs != 2) {
+        std::cout << "Please specify the number of decks" << std::endl;
+        exit(1);
+    }
+
+    // TODO: Fix this code
+    int numDecks = (int) (*argv[1] - '0');
 
     std::cout << std::endl;
     for (int i = 0; i < 35; ++i) {
@@ -35,7 +41,7 @@ int main() {
     
     std::cout << "\t♦♦♦  $0  ♦♦♦\n\n" << std::endl;
 
-    Game game;
+    Game game {numDecks};
     std::string userInput;
     while (true) {
         std::cout << "ACTION ❯ ";

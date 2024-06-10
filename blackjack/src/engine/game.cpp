@@ -20,6 +20,7 @@ void Game::fillMsg(Msg& msg) {
     msg.playerHands = playerHands;
     msg.playerIdx = playerIdx;
     msg.gameOver = gameOver;
+    msg.count = shoe.count;
     msg.betInit = false;
 };
 

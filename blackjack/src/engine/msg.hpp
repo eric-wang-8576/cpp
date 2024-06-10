@@ -26,5 +26,7 @@ struct Msg {
 
     bool betInit;
 
+    int count;
+
     void print();
 };

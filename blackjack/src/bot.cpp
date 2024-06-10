@@ -10,16 +10,27 @@
 #include "strategy.hpp"
 
 #define NUMHANDS 1000000
-#define BETSIZE 10
+#define MAXBETSIZE 10000
 
-std::string rebuy = "a $100";
-std::string bet = "b $10";
+std::string rebuy = "a $10000";
+std::string smallBet = "b $2";
+std::string bigBet = "b $10000";
 std::string e = "e";
 
-int main() {
-    Game game;
+int main(int numArgs, char** argv) {
+    if (numArgs != 2) {
+        std::cout << "Please specify the number of decks" << std::endl;
+        exit(1);
+    }
+
+    // TODO: Improve this code
+    int numDecks = (int) (*argv[1] - '0');
+    Game game {numDecks};
 
     uint32_t stackSize = 0;
+
+    uint32_t smallBets = 0;
+    uint32_t bigBets = 0;
 
     Msg msg;
 
@@ -27,13 +38,19 @@ int main() {
     for (uint32_t hand = 0; hand < NUMHANDS; hand++) {
 
         // Start the new hand, getting money if necessary 
-        if (stackSize < BETSIZE) {
+        if (stackSize < MAXBETSIZE) {
             msg = Strategy::executeAction(game, rebuy);
             stackSize = msg.stackSize;
         }
 
-        // Bet $1
-        msg = Strategy::executeAction(game, bet);
+        // Bet big if count is good
+        if (msg.count / numDecks >= 2) {
+            msg = Strategy::executeAction(game, bigBet);
+            bigBets++;
+        } else {
+            msg = Strategy::executeAction(game, smallBet);
+            smallBets++;
+        }
         stackSize = msg.stackSize;
 
         int iters = 0;
@@ -43,7 +60,7 @@ int main() {
 
             // If we need more money for this action, get it
             if (action == "h" || action == "d" || action == "p") {
-                if (stackSize < BETSIZE) {
+                if (stackSize < MAXBETSIZE) {
                     msg = Strategy::executeAction(game, rebuy);
                     stackSize = msg.stackSize;
                 }
@@ -60,5 +77,7 @@ int main() {
 
     msg = game.processInput("e");
     msg.print();
+    std::cout << "# smallBets: " << smallBets << std::endl;
+    std::cout << "# bigBets: " << bigBets << std::endl;
 }
 

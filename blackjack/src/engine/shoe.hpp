@@ -17,6 +17,8 @@ class Shoe {
     std::vector<Card> cards;
 
 public:
+    int count;
+
     Shoe(uint8_t n) : numDecks(n) {}
     Card draw();
     void shuffle();
