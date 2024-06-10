@@ -228,7 +228,6 @@ Msg Game::handleSplit() {
 Msg Game::concludeHand() {
     Msg msg;
 
-    // Deal the dealer's hands if the player has at least one non-busted hand
     bool oneNoneBusted = false;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
         if (!playerHands[idx].isBusted()) {
@@ -237,7 +236,8 @@ Msg Game::concludeHand() {
         }
     }
 
-    if (oneNoneBusted) {
+    // Deal the dealer's hands if the player has at least one non-busted hand and it is not a blackjack 
+    if (oneNoneBusted && !(playerIdx == 1 && playerHands[0].isBlackJack)) {
         while (dealerHand.shouldDraw()) {
             dealerHand.addCard(shoe.draw());
         }
