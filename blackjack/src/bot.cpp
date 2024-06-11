@@ -12,6 +12,8 @@
 #define NUMHANDS 1000000
 #define MAXBETSIZE 10000
 
+#define COUNTING 0
+
 std::string rebuy = "a $10000";
 std::string smallBet = "b $2";
 std::string bigBet = "b $10000";
@@ -43,15 +45,20 @@ int main(int numArgs, char** argv) {
             stackSize = msg.stackSize;
         }
 
-        // Bet big if count is good
-        if (msg.count / numDecks >= 2) {
-            msg = Strategy::executeAction(game, bigBet);
-            bigBets++;
+        if constexpr(COUNTING) {
+            // Bet big if count is good
+            if (msg.count / numDecks >= 2) {
+                msg = Strategy::executeAction(game, bigBet);
+                bigBets++;
+            } else {
+                msg = Strategy::executeAction(game, smallBet);
+                smallBets++;
+            }
+            stackSize = msg.stackSize;
         } else {
             msg = Strategy::executeAction(game, smallBet);
-            smallBets++;
+            stackSize = msg.stackSize;
         }
-        stackSize = msg.stackSize;
 
         int iters = 0;
         // While we are in the hand, request actions
@@ -69,7 +76,8 @@ int main(int numArgs, char** argv) {
             msg = Strategy::executeAction(game, action);
             stackSize = msg.stackSize;
 
-            if (iters++ > 100) {
+            if (iters++ > 10000) {
+                std::cout << "Iterations exceeded 10000" << std::endl;
                 exit(0);
             }
         }

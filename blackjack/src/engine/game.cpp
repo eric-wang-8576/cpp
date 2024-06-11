@@ -423,7 +423,7 @@ Msg Game::processInput(std::string input) {
             " and ended up with up with $" + std::to_string(stackSize) + 
             ".\nYou tipped $" + std::to_string(tips) +
             ".\nYou played a total of " + std::to_string(numHands) + " hands" +
-            ".\n\nTotal PNL: " + std::to_string((int)stackSize - (int)buyIn);
+            ".\n\nTotal PNL: $" + std::to_string((int)stackSize - (int)buyIn);
         msg.stackSize = stackSize;
         msg.showBoard = false;
         msg.prompt = false;
