@@ -41,49 +41,44 @@ int main(int numArgs, char** argv) {
 
         // Start the new hand, getting money if necessary 
         if (stackSize < MAXBETSIZE) {
-            msg = Strategy::executeAction(game, rebuy);
+            Strategy::executeAction(game, rebuy, msg);
             stackSize = msg.stackSize;
         }
 
-        if constexpr(COUNTING) {
-            // Bet big if count is good
-            if (msg.count / numDecks >= 2) {
-                msg = Strategy::executeAction(game, bigBet);
-                bigBets++;
-            } else {
-                msg = Strategy::executeAction(game, smallBet);
-                smallBets++;
-            }
-            stackSize = msg.stackSize;
-        } else {
-            msg = Strategy::executeAction(game, smallBet);
-            stackSize = msg.stackSize;
-        }
+        Strategy::executeAction(game, smallBet, msg);
+        stackSize = msg.stackSize;
 
         int iters = 0;
         // While we are in the hand, request actions
-        while (msg.playerIdx != msg.playerHands.size()) {
+        while (msg.playerIdx != msg.numPlayerHands) {
             std::string action = Strategy::generateAction(msg);
 
             // If we need more money for this action, get it
             if (action == "h" || action == "d" || action == "p") {
                 if (stackSize < MAXBETSIZE) {
-                    msg = Strategy::executeAction(game, rebuy);
+                    Strategy::executeAction(game, rebuy, msg);
                     stackSize = msg.stackSize;
                 }
             }
             
-            msg = Strategy::executeAction(game, action);
+            Strategy::executeAction(game, action, msg);
             stackSize = msg.stackSize;
+
+            if (msg.prevActionConfirmation == "Invalid Action -> Please Try Again") {
+                std::cout << "FAIL!" << std::endl;
+                std::cout << action << std::endl;
+                exit(0);
+            }
 
             if (iters++ > 10000) {
                 std::cout << "Iterations exceeded 10000" << std::endl;
+                std::cout << action << std::endl;
                 exit(0);
             }
         }
     }
 
-    msg = game.processInput("e");
+    game.processInput("e", msg);
     msg.print();
     std::cout << "# smallBets: " << smallBets << std::endl;
     std::cout << "# bigBets: " << bigBets << std::endl;

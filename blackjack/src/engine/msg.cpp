@@ -27,7 +27,7 @@ void Msg::print() {
         std::cout << "Dealer's Hand:       " << dealerHandP->getString() << std::endl;
         for (int hand = 0; hand < numPlayerHands; ++hand) {
             std::cout << "Player's Hand #" << hand + 1 << ":    " <<
-                (*playerHandsP)[hand].getString() << std::endl;
+                playerHandsP[hand].getString() << std::endl;
         }
         std::cout << boardBorder << std::endl;
     }

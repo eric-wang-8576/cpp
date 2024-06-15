@@ -7,7 +7,7 @@
 #include "engine/game.hpp"
 
 #define DELAY 0 // milliseconds
-#define VERBOSE false
+#define VERBOSE true
 
 enum ACTION {
     S,
@@ -73,31 +73,32 @@ SPLIT pairSplitting[8][10] = {
 // Strategy is called on an active board 
 namespace Strategy {
 
-    Msg executeAction(Game& game, std::string action) {
+    void executeAction(Game& game, std::string action, Msg& msg) {
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
 
         if constexpr(VERBOSE) {
             std::cout << "Executing Action: " << action << std::endl;
         }
-        Msg msg = game.processInput(action);
+        game.processInput(action, msg);
         if constexpr(VERBOSE) {
             msg.print();
         }
-        return msg;
+        return;
     }
 
     std::string generateAction(Msg& msg) {
         // If it is a pair, check to see if we split
-        Hand& hand = msg.playerHands[msg.playerIdx];
-        uint8_t upCard = msg.dealerHand.cards[0].getVal();
+        Hand& hand = msg.playerHandsP[msg.playerIdx];
+
+        uint8_t upCard = msg.dealerHandP->getFirstCardValue();
 
         SPLIT s;
         if (hand.isPair()) {
-            uint8_t value = hand.cards[0].getVal();
+            uint8_t value = hand.getFirstCardValue();
             if (value == 11) {
                 s = Y;
             } else if (value == 10) {
-                s = Y;
+                s = N;
             } else {
                 s = pairSplitting[9 - value][upCard - 2];
             }
@@ -109,7 +110,7 @@ namespace Strategy {
 
         // If we have a soft hand, use the soft total table
         if (hand.isSoft()) {
-            uint8_t smallerTotal = hand.values[0];
+            uint8_t smallerTotal = hand.getPrimaryVal() - 10;
             ACTION a;
             if (smallerTotal == 10) {
                 a = S;
@@ -117,12 +118,12 @@ namespace Strategy {
                 a = softTotals[9 - smallerTotal][upCard - 2];
             }
             
-            if (a == D && hand.cards.size()) {
+            if (a == D && hand.getNumCards() > 2) {
                 a = H;
             }
 
             if (a == O) {
-                if (hand.cards.size() == 2) {
+                if (hand.getNumCards() == 2) {
                     a = D;
                 } else {
                     a = S;
@@ -133,15 +134,16 @@ namespace Strategy {
         }
 
         // Default to the hard totals table
-        uint8_t total = hand.values.back();
+        uint8_t total = hand.getPrimaryVal();
         if (total <= 8) {
             return toString(H);
+
         } else if (total >= 17) {
             return toString(S);
+
         } else {
-            uint8_t upCard = msg.dealerHand.cards[0].getVal();
             ACTION a = hardTotals[16 - total][upCard - 2];
-            if (hand.cards.size() != 2 && a == D) {
+            if (hand.getNumCards() != 2 && a == D) {
                 a = H;
             }
             return toString(a);

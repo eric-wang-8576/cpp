@@ -20,9 +20,10 @@ void Game::resetBoard() {
 void Game::fillMsg(Msg& msg) {
     // Game state
     msg.dealerHandP = &dealerHand;
-    msg.playerHandsP = &playerHands;
+    msg.playerHandsP = playerHands;
     msg.playerIdx = playerIdx;
     msg.numPlayerHands = numPlayerHands;
+    msg.shuffled = false;
 
     // Display state
     msg.stackSize = stackSize;
@@ -56,7 +57,9 @@ void Game::handleAdd(uint32_t addValue, Msg& msg) {
  *
  */
 void Game::handleBet(uint32_t betAmt, Msg& msg) {
-    fillMsg(msg);
+    resetBoard();
+    
+    bool shuffledBeforeHand = shoe.triggerShuffle();
 
     // Early return if insufficient chips 
     if (betAmt > stackSize) {
@@ -99,6 +102,8 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     msg.betInit = true;
     msg.prompt = true;
     msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
+
+    msg.shuffled = shuffledBeforeHand;
     return;
 }
 
@@ -167,7 +172,7 @@ void Game::handleDouble(Msg& msg) {
 
         playerIdx++;
         // We busted the last hand, so conclude it 
-        if (playerIdx == playerHands.size()) {
+        if (playerIdx == numPlayerHands) {
             concludeHand(msg);
             return;
         }
@@ -257,7 +262,7 @@ void Game::concludeHand(Msg& msg) {
 
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
         if (playerIdx == 1 && playerHands[idx].isBlackjack() && !dealerHand.isBlackjack()) {
-            // Player blacjack, only pay out if obtained from the first two cards
+            // Player blackjack, only pay out if obtained from the first two cards
             winnings += 2 * playerHands[idx].getBetAmt() + playerHands[idx].getBetAmt() / 2;
 
         } else if (playerHands[idx].isBusted() ||
@@ -287,7 +292,6 @@ void Game::concludeHand(Msg& msg) {
     fillMsg(msg);
 
     activeBoard = false;
-    resetBoard();
 
     if (winnings > invested) {
         msg.prevActionConfirmation = "You win! You receive $" + std::to_string(winnings);
@@ -299,6 +303,7 @@ void Game::concludeHand(Msg& msg) {
 
     msg.prompt = true;
     msg.actionPrompt = "Option: bet";
+
 
     return;
 }

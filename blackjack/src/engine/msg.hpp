@@ -13,7 +13,7 @@
 struct Msg {
     // Game state
     Hand* dealerHandP;
-    std::array<Hand, 256>* playerHandsP;
+    Hand* playerHandsP; // pointer to the start of an array
     uint8_t playerIdx;
     uint8_t numPlayerHands;
 
@@ -28,6 +28,7 @@ struct Msg {
 
     bool gameOver;
     bool betInit;
+    bool shuffled;
 
     void print();
 };

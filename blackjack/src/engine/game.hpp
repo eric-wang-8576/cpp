@@ -26,10 +26,9 @@ private:
     Shoe shoe;
     Hand dealerHand;
     uint8_t numPlayerHands;
-    std::array<Hand, 256> playerHands;
+    Hand playerHands[256];
     // playerIdx refers to the current idx in playerHands the user needs to act on
     uint8_t playerIdx;
-    
 
     // Bet State
     uint32_t prevBet;
@@ -57,6 +56,8 @@ public:
         numHands(0),
         buyIn(0), 
         stackSize(0), 
+        playerIdx(0), 
+        numPlayerHands(0), 
         shoe(numDecks),
         prevBet(100),
         tips(0),

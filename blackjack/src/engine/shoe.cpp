@@ -10,8 +10,6 @@ Card* Shoe::draw() {
 }
 
 bool Shoe::triggerShuffle() {
-    cardIdx = 0;
-
     // Shuffle the deck if we have used up 2/3 of the cards
     if (cardIdx > numCards * 2 / 3) {
         shuffle();

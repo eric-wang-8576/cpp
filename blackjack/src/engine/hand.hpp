@@ -1,17 +1,18 @@
 #pragma once
 
 #include "card.hpp"
+#include <iostream>
 
 class Hand {
     // Only 26 cards are possible in any given hand
     int numCards;
-    std::array<Card*, 26> cards;
+    Card* cards[26];
 
     // Only two values are possible at any time
     // If there are two values, the greater value will
     // be stored first
     int numValues;
-    std::array<uint8_t, 2> values;
+    uint8_t values[2];
 
     // Hand states
     bool busted;
@@ -46,6 +47,7 @@ public:
     uint8_t getPrimaryVal();
     uint8_t getNumCards();
     uint32_t getBetAmt();
+    uint8_t getFirstCardValue();
     bool isObscured();
 
     // Compute if the dealer should hit this hand

@@ -122,6 +122,10 @@ uint32_t Hand::getBetAmt() {
     return betAmt;
 }
 
+uint8_t Hand::getFirstCardValue() {
+    return cards[0]->getVal();
+}
+
 bool Hand::isObscured() {
     return obscured;
 }
