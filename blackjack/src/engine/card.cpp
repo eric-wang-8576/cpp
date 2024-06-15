@@ -1,7 +1,11 @@
 #include "card.hpp"
 
+void swap(Card& a, Card& b) noexcept {
+    std::swap(a.cardID, b.cardID);
+}
+
 std::string Card::getString() {
-    switch (val) {
+    switch (cardID) {
         case 1:
             return "A ";
         case 2:
@@ -12,7 +16,7 @@ std::string Card::getString() {
         case 7:
         case 8:
         case 9:
-            return std::to_string(val) + " ";
+            return std::to_string(cardID) + " ";
         case 10:
             return "10";
         case 11:

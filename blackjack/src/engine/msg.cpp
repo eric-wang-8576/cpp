@@ -24,10 +24,10 @@ void Msg::print() {
     if (showBoard) {
         std::cout << boardBorder << std::endl;
         std::cout << "|| BOARD ||" << std::endl;
-        std::cout << "Dealer's Hand:       " << dealerHand.getString() << std::endl;
-        for (int hand = 0; hand < playerHands.size(); ++hand) {
+        std::cout << "Dealer's Hand:       " << dealerHandP->getString() << std::endl;
+        for (int hand = 0; hand < numPlayerHands; ++hand) {
             std::cout << "Player's Hand #" << hand + 1 << ":    " <<
-                playerHands[hand].getString() << std::endl;
+                (*playerHandsP)[hand].getString() << std::endl;
         }
         std::cout << boardBorder << std::endl;
     }
@@ -37,9 +37,6 @@ void Msg::print() {
     if (prompt) {
         std::cout << std::endl;
         std::cout << "---> " << actionPrompt;
-        if (!dealerHand.obscured) {
-            std::cout << "\t[ " << count << " ]";
-        }
         std::cout << std::endl;
     }
 

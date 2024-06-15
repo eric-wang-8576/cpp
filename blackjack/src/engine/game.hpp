@@ -25,8 +25,8 @@ private:
     // Hand State
     Shoe shoe;
     Hand dealerHand;
-    uint32_t numPlayerHands;
-    std::array<Hand, 1024> playerHands;
+    uint8_t numPlayerHands;
+    std::array<Hand, 256> playerHands;
     // playerIdx refers to the current idx in playerHands the user needs to act on
     uint8_t playerIdx;
     

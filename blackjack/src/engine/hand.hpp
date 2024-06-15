@@ -32,8 +32,10 @@ public:
              isBlackJack(false), 
              betAmt(0) {}
 
+    // Modify hand cards
     void addCard(Card* cardP);
     Card* popCard();
+
 
     // Check the state of the hand
     bool isBusted();
@@ -43,7 +45,8 @@ public:
     bool areAces();
     uint8_t getPrimaryVal();
     uint8_t getNumCards();
-    uint8_t getBetAmt();
+    uint32_t getBetAmt();
+    bool isObscured();
 
     // Compute if the dealer should hit this hand
     bool shouldDealerHit();
@@ -51,9 +54,8 @@ public:
     // Reset the dealer's hand
     void reset();
 
-    void setBetAmt();
-
-
+    void setBetAmt(uint32_t amt);
+    void setObscured(bool obs);
 
     std::string getString();
 };

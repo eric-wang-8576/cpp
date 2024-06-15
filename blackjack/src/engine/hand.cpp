@@ -48,7 +48,6 @@ Card* Hand::popCard() {
     return cardP;
 }
 
-
 std::string Hand::getString() {
     std::string str = "";
 
@@ -75,10 +74,9 @@ std::string Hand::getString() {
         str += "BLACKJACK";
 
     } else {
-        uint8_t numValues = values.size();
-        for (int idx = 0; idx < numValues; ++idx) {
+        for (int idx = numValues - 1; idx >= 0; --idx) {
             str += std::to_string(values[idx]);
-            if (idx != numValues - 1) {
+            if (idx != 0) {
                 str += "/";
             }
         }
@@ -124,6 +122,10 @@ uint32_t Hand::getBetAmt() {
     return betAmt;
 }
 
+bool Hand::isObscured() {
+    return obscured;
+}
+
 bool Hand::shouldDealerHit() {
     // Soft 17
     if (numValues == 2 && (values[0] == 17) && (values[1] == 7)) {
@@ -137,7 +139,11 @@ void Hand::reset() {
     numValues = 0;
 }
 
-void Hand::setBetAmt(uint32_t val) {
-    betAmt = val;
+void Hand::setBetAmt(uint32_t amt) {
+    betAmt = amt;
+}
+
+void Hand::setObscured(bool obs) {
+    obscured = obs;
 }
 

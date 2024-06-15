@@ -5,13 +5,13 @@
 // cardID ranges from 1 to 13, with 1 representing ace
 // cardID of 0 is the null card
 class Card {
-    const uint8_t cardID;
+    uint8_t cardID;
     
 public:
-    Card() : cardID(0) {}
     Card(uint8_t v) : cardID(v) {}
 
-    void setCardID(uint8_t ID);
+    // Swap function
+    friend void swap(Card& a, Card& b) noexcept;
 
     // Returns the card as a string
     std::string getString();

@@ -12,9 +12,10 @@
  */
 struct Msg {
     // Game state
-    Hand const* dealerHand;
-    std::vector<Hand*> const* playerHands;
+    Hand* dealerHandP;
+    std::array<Hand, 256>* playerHandsP;
     uint8_t playerIdx;
+    uint8_t numPlayerHands;
 
     // Display state
     std::string prevActionConfirmation;

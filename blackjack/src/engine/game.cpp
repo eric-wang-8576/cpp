@@ -19,9 +19,10 @@ void Game::resetBoard() {
 // Does not populate prevActionConfirmation or actionPrompt fields
 void Game::fillMsg(Msg& msg) {
     // Game state
-    msg.dealerHand = dealerHand;
-    msg.playerHands = &playerHands;
+    msg.dealerHandP = &dealerHand;
+    msg.playerHandsP = &playerHands;
     msg.playerIdx = playerIdx;
+    msg.numPlayerHands = numPlayerHands;
 
     // Display state
     msg.stackSize = stackSize;
@@ -46,7 +47,7 @@ void Game::handleAdd(uint32_t addValue, Msg& msg) {
                                  std::to_string(stackSize) + 
                                  ".";
     msg.prompt = false;
-    return msg;
+    return;
 }
 
 /*
@@ -75,7 +76,7 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     // Deal the dealer two cards, obscuring the second card
     dealerHand.addCard(shoe.draw());
     dealerHand.addCard(shoe.draw());
-    dealerHand.obscured = true;
+    dealerHand.setObscured(true);
 
     // Deal the player two cards
     playerHands[numPlayerHands].addCard(shoe.draw());
@@ -84,7 +85,7 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     numPlayerHands++;
 
     // Check for blackjack and return early
-    if (dealerHand.isBlackJack() || playerHands[0].isBlackJack()) {
+    if (dealerHand.isBlackjack() || playerHands[0].isBlackjack()) {
         playerIdx++;
         concludeHand(msg);
         return;
@@ -98,11 +99,12 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     msg.betInit = true;
     msg.prompt = true;
     msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
-    return msg;
+    return;
 }
 
 void Game::handleHit(Msg& msg) {
-    playerHands[playerIdx].addCard(shoe.draw());
+    Card* cardP = shoe.draw();
+    playerHands[playerIdx].addCard(cardP);
 
     // If we bust, then let the player know and move onto the next hand 
     if (playerHands[playerIdx].isBusted()) {
@@ -126,7 +128,7 @@ void Game::handleHit(Msg& msg) {
     // If no bust, then continue prompting the player
     } else {
         fillMsg(msg);
-        msg.prevActionConfirmation = "You drew a " + card.getString();
+        msg.prevActionConfirmation = "You drew a " + cardP->getString();
         
         msg.prompt = true;
         msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
@@ -246,7 +248,7 @@ void Game::concludeHand(Msg& msg) {
         }
     }
 
-    dealerHand.obscured = false;
+    dealerHand.setObscured(false);
 
     // Calculate payouts 
     uint32_t winnings = 0; // How much the player ends up winning, 
@@ -357,7 +359,7 @@ void Game::processInput(std::string input, Msg& msg) {
             goto invalidLabel;
         }
 
-        if (stackSize < playerHands[playerIdx].betAmt) {
+        if (stackSize < playerHands[playerIdx].getBetAmt()) {
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
@@ -380,7 +382,7 @@ void Game::processInput(std::string input, Msg& msg) {
             goto invalidLabel;
         }
 
-        if (stackSize < playerHands[playerIdx].betAmt) {
+        if (stackSize < playerHands[playerIdx].getBetAmt()) {
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
