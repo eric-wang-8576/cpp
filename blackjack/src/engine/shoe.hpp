@@ -22,12 +22,14 @@ class Shoe {
 
     std::random_device rd_;
     std::mt19937 g_;
+    std::uniform_int_distribution<> d_;
 
 public:
     Shoe(uint8_t n) : numDecks(n), 
                       numCards(n * 52),
                       rd_(), 
-                      g_(rd_())
+                      g_(rd_()),
+                      d_(0, n * 52 - 1)
     {
         cards.reserve(numCards);
         for (uint8_t deck = 0; deck < numDecks; deck++) {

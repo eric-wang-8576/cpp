@@ -30,5 +30,7 @@ struct Msg {
     bool betInit;
     bool shuffled;
 
+    int PNL;
+
     void print();
 };

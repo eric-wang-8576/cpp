@@ -2,8 +2,7 @@
 
 Card* Shoe::draw() {
     if (cardIdx == numCards) {
-        std::cout << "ERROR - Drawing on a finished shoe" << std::endl;
-        exit(1);
+        return &cards[d_(g_)];
     }
 
     return &cards[cardIdx++];

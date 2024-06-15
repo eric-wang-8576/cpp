@@ -98,6 +98,10 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     fillMsg(msg);
     msg.prevActionConfirmation = "You bet $" + std::to_string(betAmt) +
                                  ". The board is displayed below.";
+
+    if (shuffledBeforeHand) {
+        msg.prevActionConfirmation = "The deck was shuffled! " + msg.prevActionConfirmation;
+    }
     
     msg.betInit = true;
     msg.prompt = true;
@@ -424,7 +428,6 @@ void Game::processInput(std::string input, Msg& msg) {
 
     // Player exits
     } else if (input == "e") {
-        Msg msg;
         msg.prevActionConfirmation = 
             "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
             " and ended up with up with $" + std::to_string(stackSize) + 
@@ -435,6 +438,7 @@ void Game::processInput(std::string input, Msg& msg) {
         msg.showBoard = false;
         msg.prompt = false;
         msg.gameOver = true;
+        msg.PNL = (int) stackSize - (int) buyIn;
 
         return;
 

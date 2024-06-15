@@ -7,7 +7,7 @@
 #include "engine/game.hpp"
 
 #define DELAY 0 // milliseconds
-#define VERBOSE true
+#define VERBOSE false
 
 enum ACTION {
     S,
@@ -22,7 +22,7 @@ enum SPLIT {
     N,
 };
 
-std::string toString(ACTION a) {
+inline std::string toString(ACTION a) {
     switch (a) {
         case S: return "s";
         case H: return "h";
@@ -74,7 +74,7 @@ SPLIT pairSplitting[8][10] = {
 namespace Strategy {
 
     void executeAction(Game& game, std::string action, Msg& msg) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
+//        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
 
         if constexpr(VERBOSE) {
             std::cout << "Executing Action: " << action << std::endl;
@@ -92,7 +92,7 @@ namespace Strategy {
 
         uint8_t upCard = msg.dealerHandP->getFirstCardValue();
 
-        SPLIT s;
+        SPLIT s = N;
         if (hand.isPair()) {
             uint8_t value = hand.getFirstCardValue();
             if (value == 11) {
