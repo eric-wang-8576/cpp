@@ -23,8 +23,11 @@ private:
     uint32_t tips;
 
     // Hand State
+    Shoe shoe;
     Hand dealerHand;
-    std::vector<Hand> playerHands;
+    uint32_t numPlayerHands;
+    std::array<Hand, 1024> playerHands;
+    // playerIdx refers to the current idx in playerHands the user needs to act on
     uint8_t playerIdx;
     
 
@@ -33,7 +36,20 @@ private:
 
     bool gameOver;
 
-    Shoe shoe;
+    // Copy Board Status
+    void fillMsg(Msg& msg);
+
+    // Handlers
+    void handleAdd(uint32_t addValue, Msg& msg);
+    void handleBet(uint32_t betAmt, Msg& msg);
+    void handleHit(Msg& msg);
+    void handleStand(Msg& msg);
+    void handleDouble(Msg& msg);
+    void handleSplit(Msg& msg);
+
+    void concludeHand(Msg& msg);
+    
+    void resetBoard();
 
 public:
     Game(int numDecks) : 
@@ -46,19 +62,8 @@ public:
         tips(0),
         gameOver(false) {}
 
-    // Copy Board Status
-    void fillMsg(Msg& msg);
+    // API for user
+    // Filters user requests for correct usage corresponding to game state
+    void processInput(std::string input, Msg& msg); 
 
-    // Handlers
-    Msg handleAdd(uint32_t addValue);
-    Msg handleBet(uint32_t betAmt);
-    Msg handleHit();
-    Msg handleStand();
-    Msg handleDouble();
-    Msg handleSplit();
-
-    Msg processInput(std::string input); 
-    Msg concludeHand();
-    
-    void resetBoard();
 };

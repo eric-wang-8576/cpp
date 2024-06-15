@@ -26,12 +26,11 @@ std::string Card::getString() {
     }
 };
 
-// Returns 11 for Ace
 uint8_t Card::getVal() {
-    if (val == 1) {
+    if (cardID == 1) {
         return 11;
-    } else if (val < 10) {
-        return val;
+    } else if (cardID < 10) {
+        return cardID;
     } else {
         return 10;
     }

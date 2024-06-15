@@ -11,22 +11,22 @@
  * playerIdx contains the index of the hand that the player should act on
  */
 struct Msg {
+    // Game state
+    Hand const* dealerHand;
+    std::vector<Hand*> const* playerHands;
+    uint8_t playerIdx;
+
+    // Display state
     std::string prevActionConfirmation;
     uint32_t stackSize;
 
     bool showBoard;
-    Hand dealerHand;
-    std::vector<Hand> playerHands;
-    uint8_t playerIdx;
 
     bool prompt;
     std::string actionPrompt;
 
     bool gameOver;
-
     bool betInit;
-
-    int count;
 
     void print();
 };

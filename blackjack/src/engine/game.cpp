@@ -7,29 +7,33 @@ std::regex betPattern2("b");
 std::regex tipPattern("t\\s\\$\\d+");
 
 void Game::resetBoard() {
-    Hand hand;
-    dealerHand = hand;
-
-    playerHands.clear();
+    // Clear hands
+    dealerHand.reset();
+    for (uint8_t idx = 0; idx < numPlayerHands; ++idx) {
+        playerHands[idx].reset();
+    }
+    playerIdx = 0;
+    numPlayerHands = 0;
 }
 
+// Does not populate prevActionConfirmation or actionPrompt fields
 void Game::fillMsg(Msg& msg) {
+    // Game state
+    msg.dealerHand = dealerHand;
+    msg.playerHands = &playerHands;
+    msg.playerIdx = playerIdx;
+
+    // Display state
     msg.stackSize = stackSize;
     msg.showBoard = activeBoard;
-    msg.dealerHand = dealerHand;
-    msg.playerHands = playerHands;
-    msg.playerIdx = playerIdx;
     msg.gameOver = gameOver;
-    msg.count = shoe.count;
     msg.betInit = false;
 };
 
 /*
  * Called when the player adds chips
  */
-Msg Game::handleAdd(uint32_t addValue) {
-    Msg msg;
-
+void Game::handleAdd(uint32_t addValue, Msg& msg) {
     buyIn += addValue;
     stackSize += addValue;
 
@@ -50,10 +54,8 @@ Msg Game::handleAdd(uint32_t addValue) {
  * This function only handles the case when it is valid to do so
  *
  */
-Msg Game::handleBet(uint32_t betAmt) {
-    Msg msg;
+void Game::handleBet(uint32_t betAmt, Msg& msg) {
     fillMsg(msg);
-
 
     // Early return if insufficient chips 
     if (betAmt > stackSize) {
@@ -62,32 +64,30 @@ Msg Game::handleBet(uint32_t betAmt) {
                                      ". Please enter a smaller bet size or " +
                                      "add more money.";
         msg.prompt = false;
-        return msg;
+        return;
     }
-
 
     // Start the hand 
     activeBoard = true;
     stackSize -= betAmt;
     numHands++;
 
-    // Give the dealer a hand, obscuring the second card
+    // Deal the dealer two cards, obscuring the second card
     dealerHand.addCard(shoe.draw());
     dealerHand.addCard(shoe.draw());
     dealerHand.obscured = true;
 
-    // Give the player a hand 
-    Hand newHand;
-    newHand.addCard(shoe.draw());
-    newHand.addCard(shoe.draw());
-    newHand.betAmt = betAmt;
-    playerHands.push_back(newHand);
-    playerIdx = 0;
+    // Deal the player two cards
+    playerHands[numPlayerHands].addCard(shoe.draw());
+    playerHands[numPlayerHands].addCard(shoe.draw());
+    playerHands[numPlayerHands].setBetAmt(betAmt);
+    numPlayerHands++;
 
-    // Check for blackjack 
-    if (dealerHand.isBlackJack || playerHands[0].isBlackJack) {
+    // Check for blackjack and return early
+    if (dealerHand.isBlackJack() || playerHands[0].isBlackJack()) {
         playerIdx++;
-        return concludeHand();
+        concludeHand(msg);
+        return;
     }
 
     // Populate msg 
@@ -101,19 +101,17 @@ Msg Game::handleBet(uint32_t betAmt) {
     return msg;
 }
 
-Msg Game::handleHit() {
-    Msg msg;
-
-    Card card = shoe.draw();
-    playerHands[playerIdx].addCard(card);
+void Game::handleHit(Msg& msg) {
+    playerHands[playerIdx].addCard(shoe.draw());
 
     // If we bust, then let the player know and move onto the next hand 
     if (playerHands[playerIdx].isBusted()) {
 
         playerIdx++;
         // We busted the last hand, so conclude it 
-        if (playerIdx == playerHands.size()) {
-            return concludeHand();
+        if (playerIdx == numPlayerHands) {
+            concludeHand(msg);
+            return;
         }
 
         fillMsg(msg);
@@ -123,7 +121,7 @@ Msg Game::handleHit() {
         msg.prompt = true;
         msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
-        return msg;
+        return;
 
     // If no bust, then continue prompting the player
     } else {
@@ -133,35 +131,33 @@ Msg Game::handleHit() {
         msg.prompt = true;
         msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
-        return msg;
+        return;
     }
 }
 
-Msg Game::handleStand() {
-    Msg msg;
-
+void Game::handleStand(Msg& msg) {
     msg.prevActionConfirmation = "You stood on hand #" + std::to_string(playerIdx + 1);
 
     playerIdx++;
     // If there are more hands, then request action on them
-    if (playerIdx != playerHands.size()) {
+    if (playerIdx != numPlayerHands) {
         fillMsg(msg);
         msg.prompt = true;
         msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
-        return msg;
+        return;
+    } else {
+        concludeHand(msg);
+        return;
     }
-
-    return concludeHand();
 }
 
 // Assumes that this is a valid position to double in 
-Msg Game::handleDouble() {
-    Msg msg;
-
-    Card card = shoe.draw();
-    playerHands[playerIdx].addCard(card);
-    stackSize -= playerHands[playerIdx].betAmt;
-    playerHands[playerIdx].betAmt *= 2;
+void Game::handleDouble(Msg& msg) {
+    // Add a card and double the user's bet
+    playerHands[playerIdx].addCard(shoe.draw());
+    uint32_t originalBet = playerHands[playerIdx].getBetAmt();
+    stackSize -= originalBet;
+    playerHands[playerIdx].setBetAmt(originalBet * 2);
 
 
     // If we bust, then let the player know and move onto the next hand 
@@ -170,7 +166,8 @@ Msg Game::handleDouble() {
         playerIdx++;
         // We busted the last hand, so conclude it 
         if (playerIdx == playerHands.size()) {
-            return concludeHand();
+            concludeHand(msg);
+            return;
         }
 
         fillMsg(msg);
@@ -180,12 +177,13 @@ Msg Game::handleDouble() {
         msg.prompt = true;
         msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
-        return msg;
+        return;
     }
 
     playerIdx++;
-    if (playerIdx == playerHands.size()) {
-        return concludeHand();
+    if (playerIdx == numPlayerHands) {
+        concludeHand(msg);
+        return;
 
     } else {
         fillMsg(msg);
@@ -194,28 +192,34 @@ Msg Game::handleDouble() {
         msg.prompt = true; 
         msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
-        return msg;
+        return;
     }
 }
 
 // Assumes that this is a valid position to split 
-Msg Game::handleSplit() {
-    Msg msg;
-    
-    Hand newHand;
-    newHand.addCard(playerHands[playerIdx].cards[1]);
-    newHand.betAmt = playerHands[playerIdx].betAmt;
-    stackSize -= newHand.betAmt;
-    playerHands[playerIdx].popCard();
-    playerHands.push_back(newHand);
+void Game::handleSplit(Msg& msg) {
+    bool splitAces = playerHands[playerIdx].areAces();
+
+    // The new hand points to the second card
+    Card* cardP = playerHands[playerIdx].popCard();
+    playerHands[numPlayerHands].addCard(cardP);
+
+    // Double the user's bet
+    uint32_t originalBet = playerHands[playerIdx].getBetAmt();
+    stackSize -= originalBet;
+    playerHands[numPlayerHands].setBetAmt(originalBet);
+
+    // Increment numPlayerHands to match number of hands
+    numPlayerHands++;
 
     // If aces were split, deal both cards and resolve action 
-    if (playerHands[playerIdx].cards[0].getVal() == 11) {
+    if (splitAces) {
         playerHands[playerIdx].addCard(shoe.draw());
         playerHands[playerIdx + 1].addCard(shoe.draw());
         playerIdx += 2;
 
-        return concludeHand();
+        concludeHand(msg);
+        return;
     }
 
     fillMsg(msg);
@@ -223,12 +227,10 @@ Msg Game::handleSplit() {
     msg.prompt = true;
     msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
-    return msg;
+    return;
 }
 
-Msg Game::concludeHand() {
-    Msg msg;
-
+void Game::concludeHand(Msg& msg) {
     bool oneNoneBusted = false;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
         if (!playerHands[idx].isBusted()) {
@@ -238,8 +240,8 @@ Msg Game::concludeHand() {
     }
 
     // Deal the dealer's hands if the player has at least one non-busted hand and it is not a blackjack 
-    if (oneNoneBusted && !(playerIdx == 1 && playerHands[0].isBlackJack)) {
-        while (dealerHand.shouldDraw()) {
+    if (oneNoneBusted && !(playerIdx == 1 && playerHands[0].isBlackjack())) {
+        while (dealerHand.shouldDealerHit()) {
             dealerHand.addCard(shoe.draw());
         }
     }
@@ -252,32 +254,34 @@ Msg Game::concludeHand() {
     uint32_t invested = 0; // How much the player invested into the hand
 
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        if (playerIdx == 1 && playerHands[idx].isBlackJack && !dealerHand.isBlackJack) {
+        if (playerIdx == 1 && playerHands[idx].isBlackjack() && !dealerHand.isBlackjack()) {
             // Player blacjack, only pay out if obtained from the first two cards
-            winnings += 2 * playerHands[idx].betAmt + playerHands[idx].betAmt / 2;
+            winnings += 2 * playerHands[idx].getBetAmt() + playerHands[idx].getBetAmt() / 2;
 
         } else if (playerHands[idx].isBusted() ||
-                (dealerHand.getLastVal() > playerHands[idx].getLastVal())) {
+                (dealerHand.getPrimaryVal() > playerHands[idx].getPrimaryVal())) {
             // The player loses entirely
 
         } else if (dealerHand.isBusted() ||
-                (dealerHand.getLastVal() < playerHands[idx].getLastVal())) {
+                (dealerHand.getPrimaryVal() < playerHands[idx].getPrimaryVal())) {
             // The player wins entirely 
-            winnings += 2 * playerHands[idx].betAmt;
+            winnings += 2 * playerHands[idx].getBetAmt();
 
-        } else if (dealerHand.getLastVal() == playerHands[idx].getLastVal()) {
+        } else if (dealerHand.getPrimaryVal() == playerHands[idx].getPrimaryVal()) {
             // The player pushes
-            winnings += playerHands[idx].betAmt;
+            winnings += playerHands[idx].getBetAmt();
 
         } else {
             std::cout << "Payout Error" << std::endl;
             exit(1);
         }
 
-        invested += playerHands[idx].betAmt;
+        invested += playerHands[idx].getBetAmt();
     }
     stackSize += winnings;
 
+
+    // Populate message
     fillMsg(msg);
 
     activeBoard = false;
@@ -294,16 +298,16 @@ Msg Game::concludeHand() {
     msg.prompt = true;
     msg.actionPrompt = "Option: bet";
 
-    return msg;
+    return;
 }
 
-Msg Game::processInput(std::string input) {
+void Game::processInput(std::string input, Msg& msg) {
 
     // Adding Chips
     if (std::regex_match(input, addPattern)) {
         uint32_t addValue = std::stoi(input.substr(3));
 
-        return handleAdd(addValue);
+        return handleAdd(addValue, msg);
 
     // Attempting to start a round 
     } else if (std::regex_match(input, betPattern) || 
@@ -322,7 +326,7 @@ Msg Game::processInput(std::string input) {
             prevBet = betAmt;
         }
 
-        return handleBet(betAmt);
+        return handleBet(betAmt, msg);
 
     // Player hits
     } else if (input == "h") {
@@ -331,7 +335,7 @@ Msg Game::processInput(std::string input) {
             goto invalidLabel;
         }
 
-        return handleHit();
+        return handleHit(msg);
 
     // Player stands
     } else if (input == "s") {
@@ -340,7 +344,7 @@ Msg Game::processInput(std::string input) {
             goto invalidLabel;
         }
 
-        return handleStand();
+        return handleStand(msg);
 
     // Player doubles down
     } else if (input == "d") {
@@ -349,22 +353,21 @@ Msg Game::processInput(std::string input) {
             goto invalidLabel;
         }
 
-        if (playerHands[playerIdx].cards.size() != 2) {
+        if (playerHands[playerIdx].getNumCards() != 2) {
             goto invalidLabel;
         }
 
         if (stackSize < playerHands[playerIdx].betAmt) {
-            Msg msg;
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
                                          ". Please add more money " +
                                          "to perform this action.";
             msg.prompt = false;
-            return msg;
+            return;
         }
 
-        return handleDouble();
+        return handleDouble(msg);
 
     // Player splits 
     } else if (input == "p") {
@@ -378,42 +381,39 @@ Msg Game::processInput(std::string input) {
         }
 
         if (stackSize < playerHands[playerIdx].betAmt) {
-            Msg msg;
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
                                          ". Please add more money " +
                                          "to perform this action.";
             msg.prompt = false;
-            return msg;
+            return;
         }
 
-        return handleSplit();
+        return handleSplit(msg);
 
     // Tip the dealer
     } else if (std::regex_match(input, tipPattern)) {
         uint32_t tipValue = std::stoi(input.substr(3));
 
         if (stackSize < tipValue) {
-            Msg msg;
             fillMsg(msg);
             msg.prevActionConfirmation = "Your current stack size is $" +
                                          std::to_string(stackSize) + 
                                          ". Please add more money " +
                                          "to perform this action.";
             msg.prompt = false;
-            return msg;
+            return;
         }
 
         stackSize -= tipValue;
         tips += tipValue;
 
-        Msg msg;
         fillMsg(msg);
         msg.prevActionConfirmation = "You tipped the dealer $" + std::to_string(tipValue);
         msg.showBoard = false;
         msg.prompt = false;
-        return msg;
+        return;
 
     // Player exits
     } else if (input == "e") {
@@ -429,17 +429,15 @@ Msg Game::processInput(std::string input) {
         msg.prompt = false;
         msg.gameOver = true;
 
-        return msg;
+        return;
 
     } else {
         goto invalidLabel;
     }
 
 invalidLabel:
-    Msg msg;
     fillMsg(msg);
     msg.prevActionConfirmation = "Invalid Action -> Please Try Again";
     msg.prompt = false;
-    // TODO: Add Detailed Response Here 
-    return msg;
+    return;
 }

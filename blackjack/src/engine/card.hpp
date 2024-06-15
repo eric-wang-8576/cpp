@@ -2,15 +2,20 @@
 #include <cassert>
 #include <string>
 
-// val ranges from 1 to 13, with 1 representing ace
+// cardID ranges from 1 to 13, with 1 representing ace
+// cardID of 0 is the null card
 class Card {
-    uint8_t val;
+    const uint8_t cardID;
     
 public:
-    Card(uint8_t v) : val(v) {
-        assert(1 <= v && v <= 13);
-    }
+    Card() : cardID(0) {}
+    Card(uint8_t v) : cardID(v) {}
+
+    void setCardID(uint8_t ID);
+
+    // Returns the card as a string
     std::string getString();
-    // returns 11 for ace and 10 for paint
+
+    // Returns 11 for ace and 10 for paint
     uint8_t getVal();
 };

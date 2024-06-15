@@ -43,6 +43,7 @@ int main(int numArgs, char** argv) {
 
     Game game {numDecks};
     std::string userInput;
+    Msg msg;
     while (true) {
         std::cout << "ACTION ❯ ";
 
@@ -50,7 +51,7 @@ int main(int numArgs, char** argv) {
         if (userInput == "help") {
             std::cout << commands << std::endl;
         } else {
-            Msg msg = game.processInput(std::move(userInput));
+            game.processInput(std::move(userInput), msg);
             msg.print();
             if (msg.gameOver) {
                 exit(0);

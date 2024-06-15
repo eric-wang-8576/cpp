@@ -9,7 +9,7 @@
 
 #include "strategy.hpp"
 
-#define NUMHANDS 1000000
+#define NUMHANDS 10000000
 #define MAXBETSIZE 10000
 
 #define COUNTING 0

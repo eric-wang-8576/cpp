@@ -39,7 +39,7 @@ std::string toString(ACTION a) {
  */
 
 ACTION hardTotals[8][10] = {
-    {S, S, S, S, S, H, H, H, H, H}, // 16
+    {S, S, S, S, S, S, S, S, S, S}, // 16
     {S, S, S, S, S, H, H, H, H, H}, // 15 
     {S, S, S, S, S, H, H, H, H, H}, // 14
     {S, S, S, S, S, H, H, H, H, H}, // 13
@@ -97,7 +97,7 @@ namespace Strategy {
             if (value == 11) {
                 s = Y;
             } else if (value == 10) {
-                s = N;
+                s = Y;
             } else {
                 s = pairSplitting[9 - value][upCard - 2];
             }

@@ -1,44 +1,32 @@
 #include "hand.hpp"
 
-void Hand::addCard(Card card) {
-    cards.push_back(card);
-    updateValues();
-}
-
-void Hand::popCard() {
-    cards.pop_back();
-    updateValues();
-}
-
 void Hand::updateValues() {
-    // set this->values
-    values.clear();
-
     uint8_t numAces = 0;
     uint8_t total = 0;
-    for (Card& card : cards) {
-        total += card.getVal();
-        if (card.getVal() == 11) {
+    for (int i = 0; i < numCards; ++i) {
+        total += cards[i]->getVal();
+        if (cards[i]->getVal() == 11) {
             numAces++;
         }
     }
 
+    // Compute potential values
+    numValues = 0;
     for (uint8_t ace = 0; ace <= numAces; ace++) {
         uint8_t currVal = total - ace * 10;
         if (currVal <= 21) {
-            values.push_back(currVal);
+            values[numValues] = currVal;
+            numValues++;
         }
     }
 
-    std::reverse(values.begin(), values.end());
-    
-    // set this->busted
-    busted = values.size() == 0 ? true : false;
+    // Set busted
+    busted = numValues == 0 ? true : false;
 
     // set this->isBlackJack
-    if ( (cards.size() == 2) &&
-         ( (cards[0].getVal() == 11 && cards[1].getVal() == 10) || 
-            (cards[0].getVal() == 10 && cards[1].getVal() == 11) )
+    if ( (numCards == 2) &&
+         ( (cards[0]->getVal() == 11 && cards[1]->getVal() == 10) || 
+            (cards[0]->getVal() == 10 && cards[1]->getVal() == 11) )
        ) 
     {
         isBlackJack = true;
@@ -47,6 +35,20 @@ void Hand::updateValues() {
     }
 }
 
+void Hand::addCard(Card* cardP) {
+    cards[numCards] = cardP;
+    numCards++;
+    updateValues();
+}
+
+Card* Hand::popCard() {
+    Card* cardP = cards[numCards - 1];
+    numCards--;
+    updateValues();
+    return cardP;
+}
+
+
 std::string Hand::getString() {
     std::string str = "";
 
@@ -54,8 +56,8 @@ std::string Hand::getString() {
     for (int i = 0; i < 12; ++i) {
         if (i == 1 && obscured) { // obscure dealer's second card
             str += "??";
-        } else if (i < cards.size()) {
-            str += cards[i].getString();
+        } else if (i < numCards) {
+            str += cards[i]->getString();
         } else {
             str += "  ";
         }
@@ -94,25 +96,48 @@ bool Hand::isBusted() {
     return busted;
 }
 
-bool Hand::isPair() {
-    return (cards.size() == 2 && (cards[0].getVal() == cards[1].getVal()));
-}
-
 bool Hand::isSoft() {
-    return values.size() == 2;
+    return numValues == 2;
 }
 
-bool Hand::shouldDraw() {
+bool Hand::isPair() {
+    return (numCards == 2 && (cards[0]->getVal() == cards[1]->getVal()));
+}
+
+bool Hand::isBlackjack() {
+    return isBlackJack;
+}
+
+bool Hand::areAces() {
+    return (numCards == 2 && cards[0]->getVal() == 11 && cards[1]->getVal() == 11);
+}
+
+uint8_t Hand::getPrimaryVal() {
+    return values[0];
+}
+
+uint8_t Hand::getNumCards() {
+    return numCards;
+}
+
+uint32_t Hand::getBetAmt() {
+    return betAmt;
+}
+
+bool Hand::shouldDealerHit() {
     // Soft 17
-    if (values.size() == 2 && (values[0] == 7) && (values[1] == 17)) {
+    if (numValues == 2 && (values[0] == 17) && (values[1] == 7)) {
         return true;
     }
-    return (!busted) && (values.back() < 17);
+    return (!busted) && (values[0] < 17);
 }
 
-int Hand::getLastVal() {
-    if (values.size() != 0) {
-        return values[values.size() - 1];
-    }
-    return -1;
+void Hand::reset() {
+    numCards = 0;
+    numValues = 0;
 }
+
+void Hand::setBetAmt(uint32_t val) {
+    betAmt = val;
+}
+
