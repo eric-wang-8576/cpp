@@ -6,7 +6,6 @@
 #include "engine/msg.hpp"
 #include "engine/game.hpp"
 
-#define DELAY 0 // milliseconds
 #define VERBOSE false
 
 enum ACTION {
@@ -39,7 +38,7 @@ inline std::string toString(ACTION a) {
  */
 
 ACTION hardTotals[8][10] = {
-    {S, S, S, S, S, S, S, S, S, S}, // 16
+    {S, S, S, S, S, H, H, H, H, H}, // 16
     {S, S, S, S, S, H, H, H, H, H}, // 15 
     {S, S, S, S, S, H, H, H, H, H}, // 14
     {S, S, S, S, S, H, H, H, H, H}, // 13
@@ -56,7 +55,7 @@ ACTION softTotals[7][10] = {
     {H, H, D, D, D, H, H, H, H, H}, // A, 5
     {H, H, D, D, D, H, H, H, H, H}, // A, 4
     {H, H, H, D, D, H, H, H, H, H}, // A, 3
-    {H, H, H, D, D, H, H, H, H, H}, // A, 3
+    {H, H, H, D, D, H, H, H, H, H}, // A, 2
 };
 
 SPLIT pairSplitting[8][10] = {
@@ -73,8 +72,8 @@ SPLIT pairSplitting[8][10] = {
 // Strategy is called on an active board 
 namespace Strategy {
 
-    void executeAction(Game& game, std::string action, Msg& msg) {
-//        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
+    void executeAction(Game& game, std::string action, Msg& msg, uint32_t delay) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 
         if constexpr(VERBOSE) {
             std::cout << "Executing Action: " << action << std::endl;
@@ -109,14 +108,9 @@ namespace Strategy {
         }
 
         // If we have a soft hand, use the soft total table
-        if (hand.isSoft()) {
+        if (hand.isSoft() && hand.getPrimaryVal() < 20) {
             uint8_t smallerTotal = hand.getPrimaryVal() - 10;
-            ACTION a;
-            if (smallerTotal == 10) {
-                a = S;
-            } else {
-                a = softTotals[9 - smallerTotal][upCard - 2];
-            }
+            ACTION a = softTotals[9 - smallerTotal][upCard - 2];
             
             if (a == D && hand.getNumCards() > 2) {
                 a = H;

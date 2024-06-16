@@ -11,7 +11,6 @@
 #include "strategy.hpp"
 
 #define MAXBETSIZE 10000
-#define NUMTHREADS 25
 #define BETSIZE 2
 
 std::string rebuy = "a $10000";
@@ -19,7 +18,7 @@ std::string betSize = "b $2";
 std::string e = "e";
 
 // Returns the PNL
-void runSimulation(int numDecks, uint32_t numHands, int& PNL) {
+void runSimulation(int numDecks, uint32_t numHands, int& PNL, uint32_t delay) {
     Game game {numDecks};
 
     uint32_t stackSize = 0;
@@ -31,11 +30,11 @@ void runSimulation(int numDecks, uint32_t numHands, int& PNL) {
 
         // Start the new hand, getting money if necessary 
         if (stackSize < MAXBETSIZE) {
-            Strategy::executeAction(game, rebuy, msg);
+            Strategy::executeAction(game, rebuy, msg, delay);
             stackSize = msg.stackSize;
         }
 
-        Strategy::executeAction(game, betSize, msg);
+        Strategy::executeAction(game, betSize, msg, delay);
         stackSize = msg.stackSize;
 
         int iters = 0;
@@ -46,12 +45,12 @@ void runSimulation(int numDecks, uint32_t numHands, int& PNL) {
             // If we need more money for this action, get it
             if (action == "h" || action == "d" || action == "p") {
                 if (stackSize < MAXBETSIZE) {
-                    Strategy::executeAction(game, rebuy, msg);
+                    Strategy::executeAction(game, rebuy, msg, delay);
                     stackSize = msg.stackSize;
                 }
             }
             
-            Strategy::executeAction(game, action, msg);
+            Strategy::executeAction(game, action, msg, delay);
             stackSize = msg.stackSize;
 
             if (msg.prevActionConfirmation == "Invalid Action -> Please Try Again") {
@@ -77,21 +76,23 @@ int main(int numArgs, char* argv[]) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    if (numArgs != 3) {
-        std::cout << "Please specify the number of decks and hands" << std::endl;
+    if (numArgs != 5) {
+        std::cout << "Please specify the number of decks, hands, threads, and delay in ms" << std::endl;
         exit(1);
     }
 
     int numDecks = std::atoi(argv[1]);
     int numHands = std::atoi(argv[2]);
+    int numThreads = std::atoi(argv[3]);
+    int delay = std::atoi(argv[4]);
 
     // Launch Threads
-    int numHandsPerThread = numHands / NUMTHREADS;
+    int numHandsPerThread = numHands / numThreads;
 
-    std::vector<int> PNLs(NUMTHREADS);
+    std::vector<int> PNLs(numThreads);
     std::vector<std::thread> threads;
-    for (int i = 0; i < NUMTHREADS; ++i) {
-        threads.emplace_back(runSimulation, numDecks, numHandsPerThread, std::ref(PNLs[i]));
+    for (int i = 0; i < numThreads; ++i) {
+        threads.emplace_back(runSimulation, numDecks, numHandsPerThread, std::ref(PNLs[i]), delay);
     }
 
     for (auto& th: threads) {
