@@ -270,8 +270,7 @@ void Game::concludeHand(Msg& msg) {
             // Player blackjack, only pay out if obtained from the first two cards
             winnings += 2 * playerHands[idx].getBetAmt() + playerHands[idx].getBetAmt() / 2;
 
-        } else if (playerHands[idx].isBusted() ||
-                (dealerHand.getPrimaryVal() > playerHands[idx].getPrimaryVal())) {
+        } else if (playerHands[idx].isBusted() || dealerHand.getPrimaryVal() > playerHands[idx].getPrimaryVal()) {
             // The player loses entirely
 
         } else if (dealerHand.isBusted() ||
@@ -289,6 +288,7 @@ void Game::concludeHand(Msg& msg) {
         }
 
         invested += playerHands[idx].getBetAmt();
+        playerHands[idx].setBetAmt(0);
     }
     stackSize += winnings;
 

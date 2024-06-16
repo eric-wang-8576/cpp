@@ -111,7 +111,7 @@ bool Hand::areAces() {
 }
 
 uint8_t Hand::getPrimaryVal() {
-    return values[0];
+    return numValues > 0 ? values[0] : 0;
 }
 
 uint8_t Hand::getNumCards() {

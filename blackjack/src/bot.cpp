@@ -14,7 +14,7 @@
 #define BETSIZE 2
 
 std::string rebuy = "a $10000";
-std::string betSize = "b $2";
+std::string betSize = "b $10";
 std::string e = "e";
 
 // Returns the PNL
@@ -107,11 +107,12 @@ int main(int numArgs, char* argv[]) {
     std::cout << "\n\n\n\n\n" << std::endl;
     int totalPNL = std::accumulate(PNLs.begin(), PNLs.end(), 0);
     std::cout << "------------------------------" << std::endl;
-    std::cout << "Percentage PNL is " << ((float) totalPNL) / (numHands * 2) * 100 << "%" << std::endl;
+    std::cout << "Percentage PNL is " << ((float) totalPNL) / (numHands * 10) * 100 << "%" << std::endl;
     std::cout << "------------------------------\n" << std::endl;
     std::cout << "Total hands played is " << numHands << std::endl;
     std::cout << "Total PNL is " << totalPNL << std::endl;
     std::cout << "Avg ns per hand: " << duration.count() / numHands << std::endl;
+    std::cout << "" << std::endl;
 
 }
 
