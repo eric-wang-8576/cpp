@@ -16,8 +16,8 @@
 class Shoe {
     uint8_t numDecks;
     // Refers to the next card to draw
-    uint8_t cardIdx;
-    uint8_t numCards;
+    uint32_t cardIdx;
+    uint32_t numCards;
     std::vector<Card> cards;
 
     std::random_device rd_;

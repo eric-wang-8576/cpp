@@ -16,6 +16,7 @@ private:
     // Game State
     bool activeBoard;
     uint32_t numHands;
+    uint32_t numShuffles;
 
     // Money State
     uint32_t buyIn;
@@ -61,6 +62,7 @@ public:
         shoe(numDecks),
         prevBet(100),
         tips(0),
+        numShuffles(0),
         gameOver(false) {}
 
     // API for user

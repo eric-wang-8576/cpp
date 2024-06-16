@@ -100,6 +100,7 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
                                  ". The board is displayed below.";
 
     if (shuffledBeforeHand) {
+        numShuffles++;
         msg.prevActionConfirmation = "The deck was shuffled! " + msg.prevActionConfirmation;
     }
     
@@ -428,12 +429,14 @@ void Game::processInput(std::string input, Msg& msg) {
 
     // Player exits
     } else if (input == "e") {
+        int pnl = (int) stackSize - (int) buyIn;
         msg.prevActionConfirmation = 
             "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
             " and ended up with up with $" + std::to_string(stackSize) + 
             ".\nYou tipped $" + std::to_string(tips) +
             ".\nYou played a total of " + std::to_string(numHands) + " hands" +
-            ".\n\nTotal PNL: $" + std::to_string((int)stackSize - (int)buyIn);
+            " and the deck was shuffled " + std::to_string(numShuffles) + " times." +
+            "\n\nTotal PNL: " + (pnl < 0 ? "-" : "") + "$" + std::to_string(pnl > 0 ? pnl : -pnl);
         msg.stackSize = stackSize;
         msg.showBoard = false;
         msg.prompt = false;

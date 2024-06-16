@@ -73,13 +73,13 @@ SPLIT pairSplitting[8][10] = {
 namespace Strategy {
 
     void executeAction(Game& game, std::string action, Msg& msg, uint32_t delay) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-
-        if constexpr(VERBOSE) {
+        if (delay != 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay));
             std::cout << "Executing Action: " << action << std::endl;
         }
+
         game.processInput(action, msg);
-        if constexpr(VERBOSE) {
+        if (delay != 0) {
             msg.print();
         }
         return;
