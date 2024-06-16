@@ -18,4 +18,5 @@ public:
 
     // Returns 11 for ace and 10 for paint
     uint8_t getVal();
+    uint8_t getID();
 };

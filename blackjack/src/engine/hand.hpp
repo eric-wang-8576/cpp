@@ -49,6 +49,7 @@ public:
     uint32_t getBetAmt();
     uint8_t getFirstCardValue();
     bool isObscured();
+    uint8_t getCardID(uint8_t idx);
 
     // Compute if the dealer should hit this hand
     bool shouldDealerHit();

@@ -39,3 +39,7 @@ uint8_t Card::getVal() {
         return 10;
     }
 };
+
+uint8_t Card::getID() {
+    return cardID;
+}

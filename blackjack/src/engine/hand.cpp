@@ -130,6 +130,14 @@ bool Hand::isObscured() {
     return obscured;
 }
 
+uint8_t Hand::getCardID(uint8_t idx) {
+    if (idx < numCards) {
+        return cards[idx]->getID();
+    } else {
+        return 0;
+    }
+}
+
 bool Hand::shouldDealerHit() {
     // Soft 17
     if (numValues == 2 && (values[0] == 17) && (values[1] == 7)) {
