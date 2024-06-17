@@ -4,7 +4,6 @@ Card* Shoe::draw() {
     if (cardIdx == numCards) {
         std::cout << "Drawing on a finished shoe with cardIdx = " << cardIdx << std::endl;
         exit(1);
-        return &cards[d_(g_)];
     }
 
     return &cards[cardIdx++];

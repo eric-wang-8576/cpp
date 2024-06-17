@@ -47,7 +47,7 @@ private:
     void handleDouble(Msg& msg);
     void handleSplit(Msg& msg);
 
-    void concludeHand(Msg& msg);
+    void concludeHand(Msg& msg, bool justShuffled = false);
     
     void resetBoard();
 

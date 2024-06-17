@@ -59,8 +59,6 @@ void Game::handleAdd(uint32_t addValue, Msg& msg) {
 void Game::handleBet(uint32_t betAmt, Msg& msg) {
     resetBoard();
     
-    bool shuffledBeforeHand = shoe.triggerShuffle();
-
     // Early return if insufficient chips 
     if (betAmt > stackSize) {
         msg.prevActionConfirmation = "Your current stack size is $" +
@@ -70,6 +68,8 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
         msg.prompt = false;
         return;
     }
+
+    bool shuffledBeforeHand = shoe.triggerShuffle();
 
     // Start the hand 
     activeBoard = true;
@@ -90,7 +90,7 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     // Check for blackjack and return early
     if (dealerHand.isBlackjack() || playerHands[0].isBlackjack()) {
         playerIdx++;
-        concludeHand(msg);
+        concludeHand(msg, shuffledBeforeHand);
         return;
     }
 
@@ -98,17 +98,17 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     fillMsg(msg);
     msg.prevActionConfirmation = "You bet $" + std::to_string(betAmt) +
                                  ". The board is displayed below.";
-
-    if (shuffledBeforeHand) {
-        numShuffles++;
-        msg.prevActionConfirmation = "The deck was shuffled! " + msg.prevActionConfirmation;
-    }
     
     msg.betInit = true;
     msg.prompt = true;
     msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
-    msg.shuffled = shuffledBeforeHand;
+    if (shuffledBeforeHand) {
+        numShuffles++;
+        msg.shuffled = true;
+        msg.prevActionConfirmation = "The deck was shuffled! " + msg.prevActionConfirmation;
+    }
+
     return;
 }
 
@@ -242,7 +242,7 @@ void Game::handleSplit(Msg& msg) {
     return;
 }
 
-void Game::concludeHand(Msg& msg) {
+void Game::concludeHand(Msg& msg, bool justShuffled) {
     bool oneNoneBusted = false;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
         if (!playerHands[idx].isBusted()) {
@@ -309,6 +309,12 @@ void Game::concludeHand(Msg& msg) {
     msg.prompt = true;
     msg.actionPrompt = "Option: bet";
 
+    // This should only be true when we bet and either player or dealer has blackjack 
+    if (justShuffled) {
+        numShuffles++;
+        msg.shuffled = true;
+        msg.prevActionConfirmation = "The deck was shuffled! " + msg.prevActionConfirmation;
+    }
 
     return;
 }
