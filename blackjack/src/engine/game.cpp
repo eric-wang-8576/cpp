@@ -442,7 +442,7 @@ void Game::processInput(std::string input, Msg& msg) {
             ".\nYou tipped $" + std::to_string(tips) +
             ".\nYou played a total of " + std::to_string(numHands) + " hands" +
             " and the deck was shuffled " + std::to_string(numShuffles) + " times." +
-            "\n\nTotal PNL: " + (pnl < 0 ? "-" : "") + "$" + std::to_string(pnl > 0 ? pnl : -pnl);
+            "\n\nTotal PNL: " + (pnl < 0 ? "-" : "+") + "$" + std::to_string(pnl > 0 ? pnl : -pnl);
         msg.stackSize = stackSize;
         msg.showBoard = false;
         msg.prompt = false;

@@ -3,6 +3,11 @@
 #include <iostream>
 #include "hand.hpp"
 
+extern std::string c_purple;
+extern std::string c_cyan;
+extern std::string c_yellow;
+extern std::string white;
+
 /*
  * All messages should have a prevActionConfirmation
  *

@@ -10,10 +10,11 @@ void printBoldError(const std::string& message) {
     std::string red = "\033[31m";  // ANSI code for red
     std::string reset = "\033[0m"; // ANSI code to reset formatting
 
-    std::string top_bottom_border = "############################################";
+    std::string top_bottom_border = "###############################";
     std::string side_border = "##";
 
     // Print top border
+    std::cout << std::endl;
     std::cout << red << bold << top_bottom_border << reset << std::endl;
 
     // Print message with side borders
@@ -21,6 +22,7 @@ void printBoldError(const std::string& message) {
 
     // Print bottom border
     std::cout << red << bold << top_bottom_border << reset << std::endl;
+    std::cout << std::endl;
 }
 
 std::string commands = std::string{} + "\n" + 
@@ -43,6 +45,7 @@ int main(int numArgs, char** argv) {
     // TODO: Fix this code
     int numDecks = (int) (*argv[1] - '0');
 
+    std::cout << c_yellow;
     std::cout << std::endl;
     for (int i = 0; i < 35; ++i) {
         std::cout << "~";
@@ -54,16 +57,19 @@ int main(int numArgs, char** argv) {
     }
     std::cout << std::endl;
     std::cout << std::endl;
+    std::cout << white;
 
     std::cout << "\nUse the following commands. To see them again, type \'help\'.\n\n"
               << commands << std::endl;
     
+    std::cout << c_purple;
     std::cout << "\t♦♦♦  $0  ♦♦♦\n\n" << std::endl;
 
     Game game {numDecks};
     std::string userInput;
     Msg msg;
     while (true) {
+        std::cout << c_cyan;
         std::cout << "ACTION ❯ ";
 
         std::getline(std::cin, userInput);
@@ -75,7 +81,7 @@ int main(int numArgs, char** argv) {
                 if (msg.actionPrompt != "Option: bet") 
                 {
 
-                    printBoldError("WRONG ACTION FUCKTARD !!!");
+                    printBoldError("WROOOOOOOOOOOOOOOOONG !!!");
                     continue;
                 }
             }

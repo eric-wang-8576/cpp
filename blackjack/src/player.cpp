@@ -24,6 +24,7 @@ int main(int numArgs, char** argv) {
     // TODO: Fix this code
     int numDecks = (int) (*argv[1] - '0');
 
+    std::cout << c_yellow;
     std::cout << std::endl;
     for (int i = 0; i < 35; ++i) {
         std::cout << "~";
@@ -35,16 +36,19 @@ int main(int numArgs, char** argv) {
     }
     std::cout << std::endl;
     std::cout << std::endl;
+    std::cout << white;
 
     std::cout << "\nUse the following commands. To see them again, type \'help\'.\n\n"
               << commands << std::endl;
     
+    std::cout << c_purple;
     std::cout << "\t♦♦♦  $0  ♦♦♦\n\n" << std::endl;
 
     Game game {numDecks};
     std::string userInput;
     Msg msg;
     while (true) {
+        std::cout << c_cyan;
         std::cout << "ACTION ❯ ";
 
         std::getline(std::cin, userInput);
