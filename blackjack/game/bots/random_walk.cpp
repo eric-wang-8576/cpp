@@ -6,39 +6,33 @@
 #include "game.hpp"
 #include "strategy.hpp"
 
-#define NUMTRIALS 1000
+#define NUMTRIALS 16000
+#define NUMTHREADS 32
 
-int main(int numArgs, char* argv[]) {
-
-    if (numArgs != 5) {
-        std::cout << "Please specify starting stack, bet size, lower bound, and upper bound" << std::endl;
-        exit(1);
-    }
-
-    int startingStack = std::atoi(argv[1]);
-    int betSize = std::atoi(argv[2]);
-    int lower = std::atoi(argv[3]);
-    int upper = std::atoi(argv[4]);
-
-    uint32_t numWin = 0;
-    uint32_t numLoss = 0;
-
+void runSimulation(
+    uint32_t numTrials, 
+    int startingStack,
+    int betSize, 
+    int lowerBound, 
+    int upperBound,
+    int& numWinP, 
+    int& numLossP
+) {
     std::string rebuyStr = "a $" + std::to_string(betSize);
     std::string betStr = "b $" + std::to_string(betSize);
+
+    int numWin = 0;
+    int numLoss = 0;
 
     Msg msg;
 
     // Play hands
-    for (uint32_t trial = 0; trial < NUMTRIALS; trial++) {
+    for (uint32_t trial = 0; trial < numTrials; trial++) {
         Game game {6};
 
         // Initialize
-        int PNL;
         int buyIn = startingStack;
         int stackSize = startingStack;
-
-        int lowerBound = lower - stackSize;
-        int upperBound = upper - stackSize;
 
         Strategy::executeAction(game, "a $" + std::to_string(startingStack), msg, 0);
 
@@ -80,15 +74,60 @@ int main(int numArgs, char* argv[]) {
             }
         }
 
-
         game.processInput("e", msg);
-//        msg.print();
     }
 
-    std::cout << "# of times ended at $" + std::to_string(upper) << ": " << numWin << std::endl;
-    std::cout << "# of times ended at $" + std::to_string(lower) << ": " << numLoss << std::endl;
+    numWinP = numWin;
+    numLossP = numLoss;
+}
+
+
+int main(int numArgs, char* argv[]) {
+
+    if (numArgs != 5) {
+        std::cout << "Please specify starting stack, bet size, lower bound, and upper bound" << std::endl;
+        exit(1);
+    }
+
+    int startingStack = std::atoi(argv[1]);
+    int betSize = std::atoi(argv[2]);
+    int lower = std::atoi(argv[3]);
+    int upper = std::atoi(argv[4]);
+
+    int lowerBound = lower - startingStack;
+    int upperBound = upper - startingStack;
+
+    int numTrialsPerThread = NUMTRIALS / NUMTHREADS;
+
+    std::vector<std::thread> threads;
+    std::vector<int> numWin(NUMTHREADS);
+    std::vector<int> numLoss(NUMTHREADS);
+
+    for (int i = 0; i < NUMTHREADS; ++i) {
+        threads.emplace_back(
+            runSimulation,
+            numTrialsPerThread,
+            startingStack,
+            betSize,
+            lowerBound,
+            upperBound,
+            std::ref(numWin[i]), 
+            std::ref(numLoss[i]));
+    }
+
+    for (auto& th: threads) {
+        if (th.joinable()) {
+            th.join();
+        }
+    }
+
+    int totalWin = std::accumulate(numWin.begin(), numWin.end(), 0);
+    int totalLoss = std::accumulate(numLoss.begin(), numLoss.end(), 0);
+
+    std::cout << "# of times ended at $" + std::to_string(upper) << ": " << totalWin << std::endl;
+    std::cout << "# of times ended at $" + std::to_string(lower) << ": " << totalLoss << std::endl;
     std::cout << std::endl;
-    std::cout << "Percentage Wins: " << (100 * (float) numWin)/((float) NUMTRIALS) 
+    std::cout << "Percentage Wins: " << (100 * (float) totalWin)/((float) NUMTRIALS) 
               << "%" << std::endl;
     std::cout << std::endl;
 
