@@ -3,8 +3,7 @@
 #include <chrono>
 #include <thread>
 
-#include "engine/msg.hpp"
-#include "engine/game.hpp"
+#include "game.hpp"
 
 #define VERBOSE false
 

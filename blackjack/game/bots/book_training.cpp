@@ -1,8 +1,27 @@
 #include <iostream>
 
-#include "engine/game.hpp"
-#include "engine/shoe.hpp"
-#include "engine/hand.hpp"
+#include "game.hpp"
+#include "strategy.hpp"
+
+void printBoldError(const std::string& message) {
+    std::string bold = "\033[1m";  // ANSI code for bold
+    std::string red = "\033[31m";  // ANSI code for red
+    std::string reset = "\033[0m"; // ANSI code to reset formatting
+
+    std::string top_bottom_border = "###############################";
+    std::string side_border = "##";
+
+    // Print top border
+    std::cout << std::endl;
+    std::cout << red << bold << top_bottom_border << reset << std::endl;
+
+    // Print message with side borders
+    std::cout << red << bold << side_border << " " << message << " " << side_border << reset << std::endl;
+
+    // Print bottom border
+    std::cout << red << bold << top_bottom_border << reset << std::endl;
+    std::cout << std::endl;
+}
 
 std::string commands = std::string{} + "\n" + 
     "- \'e\': exits the game\n" +
@@ -55,6 +74,16 @@ int main(int numArgs, char** argv) {
         if (userInput == "help") {
             std::cout << commands << std::endl;
         } else {
+            if ((userInput == "h" || userInput == "d" || userInput == "p" || userInput == "s") && userInput != Strategy::generateAction(msg))
+            {
+                if (msg.actionPrompt != "Option: bet") 
+                {
+
+                    printBoldError("WROOOOOOOOOOOOOOOOONG !!!");
+                    continue;
+                }
+            }
+
             game.processInput(std::move(userInput), msg);
             msg.print();
             if (msg.gameOver) {

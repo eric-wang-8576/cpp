@@ -1,13 +1,5 @@
-To set up the game, run the following commands in this directory
-
+To play the game, run the command ./play. 
+It may be necessary to install cmake if you do not already have it installed
 ```
-mkdir build
-cd build
-cmake ..
-make
-```
-
-To play, run the following command while in the build directory
-```
-./player
+./play
 ```

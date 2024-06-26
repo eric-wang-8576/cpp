@@ -4,10 +4,7 @@
 #include <thread>
 #include <numeric>
 
-#include "engine/game.hpp"
-#include "engine/shoe.hpp"
-#include "engine/hand.hpp"
-
+#include "game.hpp"
 #include "strategy.hpp"
 
 #define MAXBETSIZE 10000

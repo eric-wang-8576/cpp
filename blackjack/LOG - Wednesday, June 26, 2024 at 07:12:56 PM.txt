@@ -1,0 +1,130 @@
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Welcome to Command Line Blackjack!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Use the following commands. To see them again, type 'help'.
+
+
+- 'e': exits the game
+- 'b': places bet equal to the previous one (default $100)
+- 'h': hit
+- 's': stand
+- 'd': double down
+- 'p': split
+- 'a $XXX': adds on $XXX to your stack
+- 'b $XXX': places a bet of $XXX
+- 't $XXX': tips the dealer $XXX
+
+
+	♦♦♦  $0  ♦♦♦
+
+
+ACTION ❯ 
+--------------
+You have added $1000 to your stack. Your new stack size is $1000.
+--------------
+
+
+	♦♦♦  $1000  ♦♦♦
+
+
+
+
+
+
+ACTION ❯ 
+--------------
+Dealer wins! You receive $0
+--------------
+
+~~~~~~~~~~~~~~~~~~~~~~~
+|| BOARD ||
+Dealer's Hand:       K  A                                (BLACKJACK)
+Player's Hand #1:    A  6                                (7/17)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+	♦♦♦  $900  ♦♦♦
+
+
+---> Option: bet
+
+
+
+
+
+ACTION ❯ 
+********************************************************************************
+
+--------------
+You bet $100. The board is displayed below.
+--------------
+
+~~~~~~~~~~~~~~~~~~~~~~~
+|| BOARD ||
+Dealer's Hand:       2  ??                               (?)
+Player's Hand #1:    A  A                                (2/12)          $100
+~~~~~~~~~~~~~~~~~~~~~~~
+
+	♦♦♦  $800  ♦♦♦
+
+
+---> Option: action on hand #1
+
+
+
+
+
+ACTION ❯ 
+--------------
+Dealer wins! You receive $0
+--------------
+
+~~~~~~~~~~~~~~~~~~~~~~~
+|| BOARD ||
+Dealer's Hand:       2  5  8  2                          (17)
+Player's Hand #1:    A  3                                (4/14)
+Player's Hand #2:    A  A                                (2/12)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+	♦♦♦  $700  ♦♦♦
+
+
+---> Option: bet
+
+
+
+
+
+ACTION ❯ 
+--------------
+Invalid Action -> Please Try Again
+--------------
+
+
+	♦♦♦  $700  ♦♦♦
+
+
+
+
+
+
+ACTION ❯ 
+--------------
+Thank you for playing.
+You bought in for $1000 and ended up with up with $700.
+You tipped $0.
+You played a total of 2 hands and the deck was shuffled 0 times.
+
+Total PNL: -$300
+--------------
+
+
+	♦♦♦  $700  ♦♦♦
+
+
+
+
+
+
