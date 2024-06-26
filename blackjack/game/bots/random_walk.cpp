@@ -6,7 +6,7 @@
 #include "game.hpp"
 #include "strategy.hpp"
 
-#define NUMTRIALS 10000
+#define NUMTRIALS 1000
 
 int main(int numArgs, char* argv[]) {
 
@@ -33,13 +33,20 @@ int main(int numArgs, char* argv[]) {
         Game game {6};
 
         // Initialize
+        int PNL;
+        int buyIn = startingStack;
+        int stackSize = startingStack;
+
+        int lowerBound = lower - stackSize;
+        int upperBound = upper - stackSize;
+
         Strategy::executeAction(game, "a $" + std::to_string(startingStack), msg, 0);
-        int stackSize = msg.stackSize;
 
         while (true) {
             // If we need more money for this action, get it
             if (stackSize < betSize) {
                 Strategy::executeAction(game, rebuyStr, msg, 0);
+                buyIn += betSize;
                 stackSize = msg.stackSize;
             }
 
@@ -54,6 +61,7 @@ int main(int numArgs, char* argv[]) {
                 if (action == "d" || action == "p") {
                     if (stackSize < betSize) {
                         Strategy::executeAction(game, rebuyStr, msg, 0);
+                        buyIn += betSize;
                         stackSize = msg.stackSize;
                     }
                 }
@@ -62,10 +70,11 @@ int main(int numArgs, char* argv[]) {
                 stackSize = msg.stackSize;
             }
 
-            if (stackSize <= lower) {
+            int PNL = stackSize - buyIn;
+            if (PNL <= lowerBound) {
                 numLoss++;
                 break;
-            } else if (stackSize >= upper) {
+            } else if (PNL >= upperBound) {
                 numWin++;
                 break;
             }
@@ -73,7 +82,7 @@ int main(int numArgs, char* argv[]) {
 
 
         game.processInput("e", msg);
-        msg.print();
+//        msg.print();
     }
 
     std::cout << "# of times ended at $" + std::to_string(upper) << ": " << numWin << std::endl;
