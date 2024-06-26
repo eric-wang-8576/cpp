@@ -66,6 +66,7 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
                                      ". Please enter a smaller bet size or " +
                                      "add more money.";
         msg.prompt = false;
+        msg.showBoard = false;
         return;
     }
 
