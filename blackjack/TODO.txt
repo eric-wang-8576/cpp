@@ -1,5 +1,3 @@
-Organize header files into include, organize directories and files better
-
-Turn the engine code and API into a portable one, with correctly obscured dealerHand
+Correctly obscured dealerHand
 
 Refine all engine code, const

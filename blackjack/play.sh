@@ -10,6 +10,6 @@ file="LOG - $timestamp.txt"
 
 touch "$file"
 
-./build/player 6 | tee tmp.txt
+./build/game/player 6 | tee tmp.txt
 cat tmp.txt | sed 's/\x1b\[[0-9;]*m//g' > $file
 rm tmp.txt
