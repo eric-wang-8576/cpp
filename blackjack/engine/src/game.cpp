@@ -324,7 +324,12 @@ void Game::processInput(std::string input, Msg& msg) {
 
     // Adding Chips
     if (std::regex_match(input, addPattern)) {
-        uint32_t addValue = std::stoi(input.substr(3));
+        uint32_t addValue;
+        try {
+            addValue = std::stoi(input.substr(3));
+        } catch (const std::out_of_range& e) {
+            goto invalidLabel;
+        }
 
         return handleAdd(addValue, msg);
 
@@ -341,7 +346,11 @@ void Game::processInput(std::string input, Msg& msg) {
         if (input.length() == 1) {
             betAmt = prevBet;
         } else {
-            betAmt = std::stoi(input.substr(3));
+            try {
+                betAmt = std::stoi(input.substr(3));
+            } catch (const std::out_of_range& e) {
+                goto invalidLabel;
+            }
             prevBet = betAmt;
         }
 
@@ -401,7 +410,12 @@ void Game::processInput(std::string input, Msg& msg) {
 
     // Tip the dealer
     } else if (std::regex_match(input, tipPattern)) {
-        uint32_t tipValue = std::stoi(input.substr(3));
+        uint32_t tipValue;
+        try {
+            tipValue = std::stoi(input.substr(3));
+        } catch (const std::out_of_range& e) {
+            goto invalidLabel;
+        }
 
         if (stackSize < tipValue) {
             goto insufficientFunds;
