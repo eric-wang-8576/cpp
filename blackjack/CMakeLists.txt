@@ -8,7 +8,5 @@ project(
   LANGUAGES CXX
   DESCRIPTION "Blackjack")
 
-file( GLOB SOURCES src/engine/*.cpp )
-
 add_subdirectory(engine)
 add_subdirectory(game)
