@@ -8,7 +8,7 @@ void printBoldError(const std::string& message) {
     std::string red = "\033[31m";  // ANSI code for red
     std::string reset = "\033[0m"; // ANSI code to reset formatting
 
-    std::string top_bottom_border = "###############################";
+    std::string top_bottom_border = "###################";
     std::string side_border = "##";
 
     // Print top border
@@ -79,7 +79,7 @@ int main(int numArgs, char** argv) {
                 if (msg.actionPrompt != "Option: bet") 
                 {
 
-                    printBoldError("WROOOOOOOOOOOOOOOOONG !!!");
+                    printBoldError("Wrong Action.");
                     continue;
                 }
             }
