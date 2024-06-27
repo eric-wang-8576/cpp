@@ -42,10 +42,10 @@ void Game::handleAdd(uint32_t addValue, Msg& msg) {
     fillMsg(msg);
 
     // Populate msg 
-    msg.prevActionConfirmation = "You have added $" + 
-                                 std::to_string(addValue) + 
-                                 " to your stack. Your new stack size is $" +
-                                 std::to_string(stackSize) + 
+    msg.prevActionConfirmation = "You have added " + 
+                                 priceToString(addValue) + 
+                                 " to your stack. Your new stack size is " +
+                                 priceToString(stackSize) + 
                                  ".";
     msg.prompt = false;
     return;
@@ -61,8 +61,8 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     
     // Early return if insufficient chips 
     if (betAmt > stackSize) {
-        msg.prevActionConfirmation = "Your current stack size is $" +
-                                     std::to_string(stackSize) + 
+        msg.prevActionConfirmation = "Your current stack size is " +
+                                     priceToString(stackSize) + 
                                      ". Please enter a smaller bet size or " +
                                      "add more money.";
         msg.prompt = false;
@@ -97,7 +97,7 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
 
     // Populate msg 
     fillMsg(msg);
-    msg.prevActionConfirmation = "You bet $" + std::to_string(betAmt) +
+    msg.prevActionConfirmation = "You bet " + priceToString(betAmt) +
                                  ". The board is displayed below.";
     
     msg.betInit = true;
@@ -300,11 +300,11 @@ void Game::concludeHand(Msg& msg, bool justShuffled) {
     activeBoard = false;
 
     if (winnings > invested) {
-        msg.prevActionConfirmation = "You win! You receive $" + std::to_string(winnings);
+        msg.prevActionConfirmation = "You win! You receive " + priceToString(winnings);
     } else if (winnings == invested) {
-        msg.prevActionConfirmation = "Draw! You receive $" + std::to_string(winnings);
+        msg.prevActionConfirmation = "Draw! You receive " + priceToString(winnings);
     } else {
-        msg.prevActionConfirmation = "Dealer wins! You receive $" + std::to_string(winnings);
+        msg.prevActionConfirmation = "Dealer wins! You receive " + priceToString(winnings);
     }
 
     msg.prompt = true;
@@ -377,13 +377,7 @@ void Game::processInput(std::string input, Msg& msg) {
         }
 
         if (stackSize < playerHands[playerIdx].getBetAmt()) {
-            fillMsg(msg);
-            msg.prevActionConfirmation = "Your current stack size is $" +
-                                         std::to_string(stackSize) + 
-                                         ". Please add more money " +
-                                         "to perform this action.";
-            msg.prompt = false;
-            return;
+            goto insufficientFunds;
         }
 
         return handleDouble(msg);
@@ -400,13 +394,7 @@ void Game::processInput(std::string input, Msg& msg) {
         }
 
         if (stackSize < playerHands[playerIdx].getBetAmt()) {
-            fillMsg(msg);
-            msg.prevActionConfirmation = "Your current stack size is $" +
-                                         std::to_string(stackSize) + 
-                                         ". Please add more money " +
-                                         "to perform this action.";
-            msg.prompt = false;
-            return;
+            goto insufficientFunds;
         }
 
         return handleSplit(msg);
@@ -416,20 +404,14 @@ void Game::processInput(std::string input, Msg& msg) {
         uint32_t tipValue = std::stoi(input.substr(3));
 
         if (stackSize < tipValue) {
-            fillMsg(msg);
-            msg.prevActionConfirmation = "Your current stack size is $" +
-                                         std::to_string(stackSize) + 
-                                         ". Please add more money " +
-                                         "to perform this action.";
-            msg.prompt = false;
-            return;
+            goto insufficientFunds;
         }
 
         stackSize -= tipValue;
         tips += tipValue;
 
         fillMsg(msg);
-        msg.prevActionConfirmation = "You tipped the dealer $" + std::to_string(tipValue);
+        msg.prevActionConfirmation = "You tipped the dealer " + priceToString(tipValue);
         msg.showBoard = false;
         msg.prompt = false;
         return;
@@ -438,12 +420,12 @@ void Game::processInput(std::string input, Msg& msg) {
     } else if (input == "e") {
         int pnl = (int) stackSize - (int) buyIn;
         msg.prevActionConfirmation = 
-            "Thank you for playing.\nYou bought in for $" + std::to_string(buyIn) + 
-            " and ended up with up with $" + std::to_string(stackSize) + 
-            ".\nYou tipped $" + std::to_string(tips) +
-            ".\nYou played a total of " + std::to_string(numHands) + " hands" +
-            " and the deck was shuffled " + std::to_string(numShuffles) + " times." +
-            "\n\nTotal PNL: " + (pnl < 0 ? "-" : "+") + "$" + std::to_string(pnl > 0 ? pnl : -pnl);
+            "Thank you for playing.\nYou bought in for " + priceToString(buyIn) + 
+            " and ended up with up with " + priceToString(stackSize) + 
+            ".\nYou tipped " + priceToString(tips) +
+            ".\nYou played a total of " + valueToString(numHands) + " hands" +
+            " and the deck was shuffled " + valueToString(numShuffles) + " times." +
+            "\n\nTotal PNL: " + priceToString(pnl);
         msg.stackSize = stackSize;
         msg.showBoard = false;
         msg.prompt = false;
@@ -455,6 +437,15 @@ void Game::processInput(std::string input, Msg& msg) {
     } else {
         goto invalidLabel;
     }
+
+insufficientFunds:
+    fillMsg(msg);
+    msg.prevActionConfirmation = "Your current stack size is " +
+                                 priceToString(stackSize) + 
+                                 ". Please add more money " +
+                                 "to perform this action.";
+    msg.prompt = false;
+    return;
 
 invalidLabel:
     fillMsg(msg);

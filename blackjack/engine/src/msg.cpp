@@ -56,7 +56,7 @@ void Msg::print() {
 
     std::cout << c_purple;
 
-    std::cout << "\n\t♦♦♦  $" << stackSize << "  ♦♦♦\n" << std::endl;
+    std::cout << "\n\t♦♦♦  " << priceToString(stackSize) << "  ♦♦♦\n" << std::endl;
 
     std::cout << c_cyan;
 

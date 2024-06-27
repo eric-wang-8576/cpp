@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "hand.hpp"
+#include "util.hpp"
 
 extern std::string c_purple;
 extern std::string c_cyan;

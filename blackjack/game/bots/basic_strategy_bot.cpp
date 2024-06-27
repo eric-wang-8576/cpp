@@ -106,8 +106,8 @@ int main(int numArgs, char* argv[]) {
     std::cout << "------------------------------" << std::endl;
     std::cout << "Percentage PNL is " << ((float) totalPNL) / (numHands * 10) * 100 << "%" << std::endl;
     std::cout << "------------------------------\n" << std::endl;
-    std::cout << "Total hands played is " << numHands << std::endl;
-    std::cout << "Total PNL is " << totalPNL << std::endl;
+    std::cout << "Total hands played is " << valueToString(numHands) << std::endl;
+    std::cout << "Total PNL is " << priceToString(totalPNL) << std::endl;
     std::cout << "Avg ns per hand: " << duration.count() / numHands << std::endl;
     std::cout << "" << std::endl;
 

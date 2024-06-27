@@ -124,8 +124,8 @@ int main(int numArgs, char* argv[]) {
     int totalWin = std::accumulate(numWin.begin(), numWin.end(), 0);
     int totalLoss = std::accumulate(numLoss.begin(), numLoss.end(), 0);
 
-    std::cout << "# of times ended at $" + std::to_string(upper) << ": " << totalWin << std::endl;
-    std::cout << "# of times ended at $" + std::to_string(lower) << ": " << totalLoss << std::endl;
+    std::cout << "# of times ended at " + priceToString(upper) << ": " << totalWin << std::endl;
+    std::cout << "# of times ended at " + priceToString(lower) << ": " << totalLoss << std::endl;
     std::cout << std::endl;
     std::cout << "Percentage Wins: " << (100 * (float) totalWin)/((float) NUMTRIALS) 
               << "%" << std::endl;

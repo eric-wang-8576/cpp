@@ -31,23 +31,12 @@ int getCount(uint8_t cardID) {
     }
 }
 
-struct comma_numpunct : std::numpunct<char> {
-protected:
-    virtual char do_thousands_sep() const {
-        return ',';
-    }
-
-    virtual std::string do_grouping() const {
-        return "\3";
-    }
-};
-
 double calculateCount(int count, int numCardsRemaining) {
     return (double) count / ((double) numCardsRemaining / 52);
 }
 
 // Returns the PNL
-void runSimulation(int numDecks, uint32_t numHands, int64_t& PNL, uint32_t& amountBet, int& numSmallBets, int& numBigBets, uint32_t delay, double threshold) {
+void runSimulation(int numDecks, uint32_t numHands, int64_t& PNL, uint32_t& amountBet, int& numSmallBets, int& numBigBets, int& numBigBetsWon, int& numBigBetsPush, uint32_t delay, double threshold) {
     // Counting state
     int count = 0;
     int numCardsRemaining = numDecks * 52;
@@ -61,6 +50,7 @@ void runSimulation(int numDecks, uint32_t numHands, int64_t& PNL, uint32_t& amou
     amountBet = 0;
     numSmallBets = 0;
     numBigBets = 0;
+    numBigBetsWon = 0;
 
     Msg msg;
 
@@ -75,11 +65,15 @@ void runSimulation(int numDecks, uint32_t numHands, int64_t& PNL, uint32_t& amou
 
         // Decide whether or not to bet big based on the count
         // and whether or not we are about to start a new hand 
-        if (trueCount >= threshold && numCardsRemaining > 52 * numDecks / 3 + 1) {
+        bool bigBet;
+        int prevStackSize = stackSize;
+        if (trueCount >= threshold && numCardsRemaining > 52 * numDecks / 3) {
+            bigBet = true;
             amountBet += 10000;
             numBigBets++;
             Strategy::executeAction(game, bigBetSize, msg, delay);
         } else {
+            bigBet = false;
             amountBet += 2;
             numSmallBets++;
             Strategy::executeAction(game, smallBetSize, msg, delay);
@@ -121,6 +115,13 @@ void runSimulation(int numDecks, uint32_t numHands, int64_t& PNL, uint32_t& amou
             }
         }
 
+        // Update if this bet was big
+        if (bigBet && stackSize > prevStackSize) {
+            numBigBetsWon++;
+        } else if (bigBet && stackSize == prevStackSize) {
+            numBigBetsPush++;
+        }
+
         // Update count
         for (int idx = 0; idx < msg.dealerHandP->getNumCards(); ++idx) {
             count += getCount(msg.dealerHandP->getCardID(idx));
@@ -144,9 +145,6 @@ void runSimulation(int numDecks, uint32_t numHands, int64_t& PNL, uint32_t& amou
 
 
 int main(int numArgs, char* argv[]) {
-    std::locale comma_locale(std::locale(), new comma_numpunct());
-    std::cout.imbue(comma_locale);
-
     auto start = std::chrono::high_resolution_clock::now();
 
     if (numArgs != 6) {
@@ -167,11 +165,15 @@ int main(int numArgs, char* argv[]) {
     std::vector<uint32_t> amounts(numThreads);
     std::vector<int> numSmallBets(numThreads);
     std::vector<int> numBigBets(numThreads);
+    std::vector<int> numBigBetsWon(numThreads);
+    std::vector<int> numBigBetsPush(numThreads);
     std::vector<std::thread> threads;
     for (int i = 0; i < numThreads; ++i) {
         threads.emplace_back(runSimulation, numDecks, numHandsPerThread, 
                              std::ref(PNLs[i]), std::ref(amounts[i]), 
-                             std::ref(numSmallBets[i]), std::ref(numBigBets[i]), delay, threshold);
+                             std::ref(numSmallBets[i]), std::ref(numBigBets[i]), 
+                             std::ref(numBigBetsWon[i]), std::ref(numBigBetsPush[i]),
+                             delay, threshold);
     }
 
     for (auto& th: threads) {
@@ -188,15 +190,19 @@ int main(int numArgs, char* argv[]) {
     uint32_t amountBet = std::accumulate(amounts.begin(), amounts.end(), 0);
     int numSmall = std::accumulate(numSmallBets.begin(), numSmallBets.end(), 0);
     int numBig = std::accumulate(numBigBets.begin(), numBigBets.end(), 0);
+    int numBigWon = std::accumulate(numBigBetsWon.begin(), numBigBetsWon.end(), 0);
+    int numBigPush = std::accumulate(numBigBetsPush.begin(), numBigBetsPush.end(), 0);
     std::cout << "------------------------------" << std::endl;
     std::cout << "PNL per hand is $" << std::fixed << std::setprecision(2) << float(totalPNL) / float(numHands) << std::endl;
     std::cout << "------------------------------\n" << std::endl;
     std::cout << "Percentage PNL is " << float(totalPNL) / float(amountBet) * 100 << "%" << std::endl;
-    std::cout << "Total hands played is " << numHands << std::endl;
-    std::cout << "# of small bets: " << numSmall << std::endl;
-    std::cout << "# of big bets: " << numBig << std::endl;
-    std::cout << "Total PNL is " << (totalPNL < 0 ? "-" : "") << "$" << (totalPNL > 0 ? totalPNL : -totalPNL) << std::endl;
-    std::cout << "Avg ns per hand: " << duration.count() / numHands << std::endl;
+    std::cout << "Total hands played is " << valueToString(numHands) << std::endl;
+    std::cout << "# of small bets: " << valueToString(numSmall) << std::endl;
+    std::cout << "# of big bets: " << valueToString(numBig) << std::endl;
+    std::cout << "Percentage big bets won: " << float(numBigWon) / float(numBig) * 100 << "%" << std::endl;
+    std::cout << "Percentage big bets push: " << float(numBigPush) / float(numBig) * 100 << "%" << std::endl;
+    std::cout << "Total PNL is " << priceToString(totalPNL) << std::endl;
+    std::cout << "Avg ns per hand: " << valueToString(duration.count() / numHands) << std::endl;
     std::cout << "" << std::endl;
 
 }
