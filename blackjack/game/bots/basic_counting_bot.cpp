@@ -19,13 +19,31 @@ std::string bigBetSize = "b $10000";
 std::string e = "e";
 
 int getCount(uint8_t cardID) {
-    if (2 <= cardID && cardID <= 6) {
-        return 1;
-    } else if (7 <= cardID && cardID <= 9) {
+    switch (cardID) {
+    case 1:
+        return -4;
+    case 2:
+        return 2;
+    case 3:
+        return 3;
+    case 4:
+        return 3;
+    case 5:
+        return 4;
+    case 6:
+        return 3;
+    case 7:
+        return 2;
+    case 8:
         return 0;
-    } else if (10 <= cardID && cardID <= 13 || cardID == 1) {
+    case 9:
         return -1;
-    } else {
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+        return -3;
+    default:
         std::cout << "Count Error, ID = " << (int) cardID << std::endl;
         exit(1);
     }
