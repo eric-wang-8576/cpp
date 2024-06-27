@@ -8,8 +8,12 @@ timestamp=$(date +"%A, %B %d, %Y at %I:%M:%S %p")
 
 file="LOG - $timestamp.txt"
 
+remove_ansi() {
+    sed -r "s/\x1B\[[0-9;]*[mGKH]//g"
+}
+
 touch "$file"
 
-./build/game/player 6 | tee tmp.txt
-cat tmp.txt | sed 's/\x1b\[[0-9;]*m//g' > $file
-rm tmp.txt
+./build/game/player 6 | tee log.txt
+cat log.txt | remove_ansi > $file
+rm log.txt
