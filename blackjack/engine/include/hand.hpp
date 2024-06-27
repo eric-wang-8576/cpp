@@ -1,6 +1,7 @@
 #pragma once
 
 #include "card.hpp"
+#include "util.hpp"
 #include <iostream>
 
 class Hand {

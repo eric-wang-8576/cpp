@@ -84,7 +84,7 @@ std::string Hand::getString() {
     str += ")";
 
     if (betAmt != 0) {
-        str += "          $" + std::to_string(betAmt);
+        str += "          " + priceToString(betAmt);
     }
 
     return str;
