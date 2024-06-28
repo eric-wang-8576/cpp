@@ -40,8 +40,7 @@ int main(int numArgs, char** argv) {
         exit(1);
     }
 
-    // TODO: Fix this code
-    int numDecks = (int) (*argv[1] - '0');
+    int numDecks = std::atoi(argv[1]);
 
     std::cout << c_yellow;
     std::cout << std::endl;
