@@ -219,7 +219,7 @@ int main(int numArgs, char* argv[]) {
     std::cout << "# of big bets: " << valueToString(numBig) << std::endl;
     std::cout << "Percentage big bets won: " << float(numBigWon) / float(numBig) * 100 << "%" << std::endl;
     std::cout << "Percentage big bets push: " << float(numBigPush) / float(numBig) * 100 << "%" << std::endl;
-    std::cout << "Total PNL is " << priceToString(totalPNL) << std::endl;
+    std::cout << "Total PNL is " << PNLToString(totalPNL) << std::endl;
     std::cout << "Avg ns per hand: " << valueToString(duration.count() / numHands) << std::endl;
     std::cout << "" << std::endl;
 

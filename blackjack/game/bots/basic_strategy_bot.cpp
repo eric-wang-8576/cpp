@@ -104,10 +104,10 @@ int main(int numArgs, char* argv[]) {
     std::cout << "\n\n\n\n\n" << std::endl;
     int totalPNL = std::accumulate(PNLs.begin(), PNLs.end(), 0);
     std::cout << "------------------------------" << std::endl;
-    std::cout << "Percentage PNL is " << ((float) totalPNL) / (numHands * 10) * 100 << "%" << std::endl;
+    std::cout << "Percentage PNL is " << ((float) totalPNL) / ((float) numHands * 10) * 100 << "%" << std::endl;
     std::cout << "------------------------------\n" << std::endl;
     std::cout << "Total hands played is " << valueToString(numHands) << std::endl;
-    std::cout << "Total PNL is " << priceToString(totalPNL) << std::endl;
+    std::cout << "Total PNL is " << PNLToString(totalPNL) << std::endl;
     std::cout << "Avg ns per hand: " << duration.count() / numHands << std::endl;
     std::cout << "" << std::endl;
 
