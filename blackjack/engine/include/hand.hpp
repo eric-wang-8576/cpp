@@ -16,9 +16,8 @@ class Hand {
     uint8_t values[2];
 
     // Hand states
-    bool busted;
     bool obscured;
-    bool isBlackJack;
+    bool isOriginal; // original two cards dealt by dealer 
 
     // Amount of money the user bet on this hand
     uint32_t betAmt;
@@ -29,9 +28,8 @@ public:
 
     Hand() : numCards(0),
              numValues(0),
-             busted(false), 
              obscured(false), 
-             isBlackJack(false), 
+             isOriginal(false),
              betAmt(0) {}
 
     // Modify hand cards
@@ -60,6 +58,7 @@ public:
 
     void setBetAmt(uint32_t amt);
     void setObscured(bool obs);
+    void setOriginal(bool orig);
 
     std::string getString();
 };

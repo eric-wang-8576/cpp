@@ -20,19 +20,6 @@ void Hand::updateValues() {
         }
     }
 
-    // Set busted
-    busted = numValues == 0 ? true : false;
-
-    // set this->isBlackJack
-    if ( (numCards == 2) &&
-         ( (cards[0]->getVal() == 11 && cards[1]->getVal() == 10) || 
-            (cards[0]->getVal() == 10 && cards[1]->getVal() == 11) )
-       ) 
-    {
-        isBlackJack = true;
-    } else {
-        isBlackJack = false;
-    }
 }
 
 void Hand::addCard(Card* cardP) {
@@ -64,13 +51,13 @@ std::string Hand::getString() {
     }
 
     str += "(";
-    if (busted) {
+    if (isBusted()) {
         str += "BUST";
 
     } else if (obscured) {
         str += "?";
 
-    } else if (isBlackJack) {
+    } else if (isBlackjack()) {
         str += "BLACKJACK";
 
     } else {
@@ -91,7 +78,7 @@ std::string Hand::getString() {
 }
 
 bool Hand::isBusted() {
-    return busted;
+    return numValues == 0;
 }
 
 bool Hand::isSoft() {
@@ -103,7 +90,7 @@ bool Hand::isPair() {
 }
 
 bool Hand::isBlackjack() {
-    return isBlackJack;
+    return (numCards == 2 && getPrimaryVal() == 21 && isOriginal);
 }
 
 bool Hand::areAces() {
@@ -143,12 +130,13 @@ bool Hand::shouldDealerHit() {
     if (numValues == 2 && (values[0] == 17) && (values[1] == 7)) {
         return true;
     }
-    return (!busted) && (values[0] < 17);
+    return (!isBusted()) && (values[0] < 17);
 }
 
 void Hand::reset() {
     numCards = 0;
     numValues = 0;
+    isOriginal = false;
 }
 
 void Hand::setBetAmt(uint32_t amt) {
@@ -159,3 +147,6 @@ void Hand::setObscured(bool obs) {
     obscured = obs;
 }
 
+void Hand::setOriginal(bool orig) {
+    isOriginal = orig;
+}

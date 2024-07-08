@@ -81,11 +81,13 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     dealerHand.addCard(shoe.draw());
     dealerHand.addCard(shoe.draw());
     dealerHand.setObscured(true);
+    dealerHand.setOriginal(true);
 
     // Deal the player two cards
     playerHands[numPlayerHands].addCard(shoe.draw());
     playerHands[numPlayerHands].addCard(shoe.draw());
     playerHands[numPlayerHands].setBetAmt(betAmt);
+    playerHands[numPlayerHands].setOriginal(true);
     numPlayerHands++;
 
     // Check for blackjack and return early
@@ -168,10 +170,10 @@ void Game::handleStand(Msg& msg) {
 void Game::handleDouble(Msg& msg) {
     // Add a card and double the user's bet
     playerHands[playerIdx].addCard(shoe.draw());
+    playerHands[playerIdx].setOriginal(false);
     uint32_t originalBet = playerHands[playerIdx].getBetAmt();
     stackSize -= originalBet;
     playerHands[playerIdx].setBetAmt(originalBet * 2);
-
 
     // If we bust, then let the player know and move onto the next hand 
     if (playerHands[playerIdx].isBusted()) {
@@ -215,7 +217,9 @@ void Game::handleSplit(Msg& msg) {
 
     // The new hand points to the second card
     Card* cardP = playerHands[playerIdx].popCard();
+    playerHands[playerIdx].setOriginal(false);
     playerHands[numPlayerHands].addCard(cardP);
+    playerHands[numPlayerHands].setOriginal(false);
 
     // Double the user's bet
     uint32_t originalBet = playerHands[playerIdx].getBetAmt();
@@ -225,12 +229,14 @@ void Game::handleSplit(Msg& msg) {
     // Increment numPlayerHands to match number of hands
     numPlayerHands++;
 
-    // If aces were split, deal both cards and resolve action 
+    // If aces were split, deal both cards
     if (splitAces) {
         playerHands[playerIdx].addCard(shoe.draw());
         playerHands[playerIdx + 1].addCard(shoe.draw());
         playerIdx += 2;
+    }
 
+    if (playerIdx == numPlayerHands) {
         concludeHand(msg);
         return;
     }
@@ -244,18 +250,21 @@ void Game::handleSplit(Msg& msg) {
 }
 
 void Game::concludeHand(Msg& msg, bool justShuffled) {
-    bool oneNoneBusted = false;
+    // We deal the dealer's cards only if the player has at least one hand
+    //   that is not blackjack or busted
+    bool dealDealerCards = false;
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        if (!playerHands[idx].isBusted()) {
-            oneNoneBusted = true;
+        if (!(playerHands[idx].isBusted() || playerHands[idx].isBusted())) {
+            dealDealerCards = true;
             break;
         }
     }
 
     // Deal the dealer's hands if the player has at least one non-busted hand and it is not a blackjack 
-    if (oneNoneBusted && !(playerIdx == 1 && playerHands[0].isBlackjack())) {
+    if (dealDealerCards) {
         while (dealerHand.shouldDealerHit()) {
             dealerHand.addCard(shoe.draw());
+            dealerHand.setOriginal(false);
         }
     }
 
@@ -267,15 +276,14 @@ void Game::concludeHand(Msg& msg, bool justShuffled) {
     uint32_t invested = 0; // How much the player invested into the hand
 
     for (uint8_t idx = 0; idx < playerIdx; ++idx) {
-        if (playerIdx == 1 && playerHands[idx].isBlackjack() && !dealerHand.isBlackjack()) {
-            // Player blackjack, only pay out if obtained from the first two cards
+        if (playerHands[idx].isBlackjack() && !dealerHand.isBlackjack()) {
+            // Player blackjack
             winnings += 2 * playerHands[idx].getBetAmt() + playerHands[idx].getBetAmt() / 2;
 
         } else if (playerHands[idx].isBusted() || dealerHand.getPrimaryVal() > playerHands[idx].getPrimaryVal()) {
             // The player loses entirely
 
-        } else if (dealerHand.isBusted() ||
-                (dealerHand.getPrimaryVal() < playerHands[idx].getPrimaryVal())) {
+        } else if (dealerHand.isBusted() || (dealerHand.getPrimaryVal() < playerHands[idx].getPrimaryVal())) {
             // The player wins entirely 
             winnings += 2 * playerHands[idx].getBetAmt();
 
