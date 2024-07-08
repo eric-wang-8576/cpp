@@ -68,8 +68,10 @@ public:
         numBets(1),
         tips(0),
         numShuffles(0),
-        gameOver(false) {
+        gameOver(false),
+        totalBet(100) {
         bets[0] = 100;
+
     }
 
     // API for user

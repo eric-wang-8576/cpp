@@ -13,6 +13,9 @@ std::string cyan = "\033[36m";
 std::string white = "\033[37m";
 std::string custom = "\033[38;5;m";
 
+std::string bold_on = "\033[1m";
+std::string bold_off = "\033[0m";
+
 std::string c_purple = "\033[38;5;129m";
 std::string c_cyan = "\033[38;5;51m";
 std::string c_yellow = "\033[38;5;11m";
@@ -48,8 +51,16 @@ void Msg::print() {
         std::cout << "|| BOARD ||" << std::endl;
         std::cout << "Dealer's Hand:       " << dealerHandP->getString() << std::endl;
         for (int hand = 0; hand < numPlayerHands; ++hand) {
+            if (hand == playerIdx) {
+                std::cout << bold_on;
+            }
+
             std::cout << "Player's Hand #" << hand + 1 << ":    " <<
                 playerHandsP[hand].getString() << std::endl;
+
+            if (hand == playerIdx) {
+                std::cout << bold_off << green;
+            }
         }
         std::cout << boardBorder << std::endl;
     }
