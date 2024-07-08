@@ -19,7 +19,6 @@ void Hand::updateValues() {
             numValues++;
         }
     }
-
 }
 
 void Hand::addCard(Card* cardP) {

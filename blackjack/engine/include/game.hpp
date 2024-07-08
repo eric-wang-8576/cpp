@@ -17,6 +17,7 @@ private:
     bool activeBoard;
     uint32_t numHands;
     uint32_t numShuffles;
+    std::smatch matches;
 
     // Money State
     uint32_t buyIn;
@@ -32,7 +33,9 @@ private:
     uint8_t playerIdx;
 
     // Bet State
-    uint32_t prevBet;
+    uint32_t numBets;
+    uint32_t totalBet;
+    uint32_t bets[7];
 
     bool gameOver;
 
@@ -41,11 +44,13 @@ private:
 
     // Handlers
     void handleAdd(uint32_t addValue, Msg& msg);
-    void handleBet(uint32_t betAmt, Msg& msg);
+    void handleBet(Msg& msg);
     void handleHit(Msg& msg);
     void handleStand(Msg& msg);
     void handleDouble(Msg& msg);
     void handleSplit(Msg& msg);
+
+    void advancePlayerIdx();
 
     void concludeHand(Msg& msg, bool justShuffled = false);
     
@@ -60,10 +65,12 @@ public:
         playerIdx(0), 
         numPlayerHands(0), 
         shoe(numDecks),
-        prevBet(100),
+        numBets(1),
         tips(0),
         numShuffles(0),
-        gameOver(false) {}
+        gameOver(false) {
+        bets[0] = 100;
+    }
 
     // API for user
     // Filters user requests for correct usage corresponding to game state

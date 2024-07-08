@@ -2,7 +2,9 @@
 #include <sys/ioctl.h>
 
 std::regex addPattern("a\\s\\$\\d+");
-std::regex betPattern("b\\s\\$\\d+");
+std::regex betPattern(R"(b(\s\$(\d+)){1,7})");
+std::regex singleBetPattern(R"(\$(\d+))");
+std::smatch matches;
 std::regex betPattern2("b");
 std::regex tipPattern("t\\s\\$\\d+");
 
@@ -56,25 +58,13 @@ void Game::handleAdd(uint32_t addValue, Msg& msg) {
  * This function only handles the case when it is valid to do so
  *
  */
-void Game::handleBet(uint32_t betAmt, Msg& msg) {
+void Game::handleBet(Msg& msg) {
     resetBoard();
-    
-    // Early return if insufficient chips 
-    if (betAmt > stackSize) {
-        msg.prevActionConfirmation = "Your current stack size is " +
-                                     priceToString(stackSize) + 
-                                     ". Please enter a smaller bet size or " +
-                                     "add more money.";
-        msg.prompt = false;
-        msg.showBoard = false;
-        return;
-    }
 
     bool shuffledBeforeHand = shoe.triggerShuffle();
 
     // Start the hand 
     activeBoard = true;
-    stackSize -= betAmt;
     numHands++;
 
     // Deal the dealer two cards, obscuring the second card
@@ -83,23 +73,33 @@ void Game::handleBet(uint32_t betAmt, Msg& msg) {
     dealerHand.setObscured(true);
     dealerHand.setOriginal(true);
 
-    // Deal the player two cards
-    playerHands[numPlayerHands].addCard(shoe.draw());
-    playerHands[numPlayerHands].addCard(shoe.draw());
-    playerHands[numPlayerHands].setBetAmt(betAmt);
-    playerHands[numPlayerHands].setOriginal(true);
-    numPlayerHands++;
+    for (uint8_t i = 0; i < numBets; ++i) {
+        // Deal the player two cards
+        playerHands[numPlayerHands].addCard(shoe.draw());
+        playerHands[numPlayerHands].addCard(shoe.draw());
+        stackSize -= bets[i];
+        playerHands[numPlayerHands].setBetAmt(bets[i]);
+        playerHands[numPlayerHands].setOriginal(true);
+        numPlayerHands++;
+    }
 
     // Check for blackjack and return early
-    if (dealerHand.isBlackjack() || playerHands[0].isBlackjack()) {
-        playerIdx++;
+    if (dealerHand.isBlackjack()) {
+        playerIdx = numPlayerHands;
+        concludeHand(msg, shuffledBeforeHand);
+        return;
+    }
+
+    advancePlayerIdx();
+
+    if (playerIdx == numPlayerHands) {
         concludeHand(msg, shuffledBeforeHand);
         return;
     }
 
     // Populate msg 
     fillMsg(msg);
-    msg.prevActionConfirmation = "You bet " + priceToString(betAmt) +
+    msg.prevActionConfirmation = "You bet " + priceToString(totalBet) +
                                  ". The board is displayed below.";
     
     msg.betInit = true;
@@ -123,6 +123,7 @@ void Game::handleHit(Msg& msg) {
     if (playerHands[playerIdx].isBusted()) {
 
         playerIdx++;
+        advancePlayerIdx();
         // We busted the last hand, so conclude it 
         if (playerIdx == numPlayerHands) {
             concludeHand(msg);
@@ -154,6 +155,7 @@ void Game::handleStand(Msg& msg) {
     msg.prevActionConfirmation = "You stood on hand #" + std::to_string(playerIdx + 1);
 
     playerIdx++;
+    advancePlayerIdx();
     // If there are more hands, then request action on them
     if (playerIdx != numPlayerHands) {
         fillMsg(msg);
@@ -179,6 +181,7 @@ void Game::handleDouble(Msg& msg) {
     if (playerHands[playerIdx].isBusted()) {
 
         playerIdx++;
+        advancePlayerIdx();
         // We busted the last hand, so conclude it 
         if (playerIdx == numPlayerHands) {
             concludeHand(msg);
@@ -196,6 +199,7 @@ void Game::handleDouble(Msg& msg) {
     }
 
     playerIdx++;
+    advancePlayerIdx();
     if (playerIdx == numPlayerHands) {
         concludeHand(msg);
         return;
@@ -247,6 +251,12 @@ void Game::handleSplit(Msg& msg) {
     msg.actionPrompt = "Option: action on hand #" + std::to_string(playerIdx + 1);
 
     return;
+}
+
+void Game::advancePlayerIdx() {
+    while (playerIdx < numPlayerHands && playerHands[playerIdx].isBlackjack()) {
+        playerIdx++;
+    }
 }
 
 void Game::concludeHand(Msg& msg, bool justShuffled) {
@@ -342,27 +352,54 @@ void Game::processInput(std::string input, Msg& msg) {
         return handleAdd(addValue, msg);
 
     // Attempting to start a round 
-    } else if (std::regex_match(input, betPattern) || 
-               std::regex_match(input, betPattern2) ) {
-
+    } else if (std::regex_match(input, matches, betPattern)) {
         if (activeBoard) {
             goto invalidLabel;
         }
 
-        // Set & Process betAmt
-        uint32_t betAmt;
-        if (input.length() == 1) {
-            betAmt = prevBet;
-        } else {
+        numBets = 0;
+        totalBet = 0;
+
+        std::string matchedString = matches.str(0);
+        std::sregex_iterator iter(matchedString.begin(), matchedString.end(), singleBetPattern);
+        std::sregex_iterator end;
+
+        // Iterate through the matches and convert to integers
+        while (iter != end) {
             try {
-                betAmt = std::stoi(input.substr(3));
+                bets[numBets] = std::stoi((*iter)[1].str());
             } catch (const std::out_of_range& e) {
+                numBets = 0;
+                totalBet = 0;
                 goto invalidLabel;
             }
-            prevBet = betAmt;
+
+            totalBet += bets[numBets];
+            numBets++;
+            ++iter;
         }
 
-        return handleBet(betAmt, msg);
+        if (numBets < 1 || numBets > 7) {
+            goto invalidLabel;
+        }
+
+        if (totalBet > stackSize) {
+            goto insufficientFunds;
+        }
+
+        return handleBet(msg);
+
+    // Player bets previous bet
+    } else if (std::regex_match(input, betPattern2)) {
+        if (activeBoard || numBets < 1 || numBets > 7) {
+            goto invalidLabel;
+        }
+
+        if (totalBet > stackSize) {
+            goto insufficientFunds;
+        }
+
+        return handleBet(msg);
 
     // Player hits
     } else if (input == "h") {
