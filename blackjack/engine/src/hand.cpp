@@ -67,10 +67,15 @@ std::string Hand::getString() {
             }
         }
     }
+
     str += ")";
 
     if (betAmt != 0) {
-        str += "          " + priceToString(betAmt);
+        uint8_t numSpaces = 55 - str.length();
+        for (int i = 0; i < numSpaces; ++i) {
+            str += " ";
+        }
+        str += priceToString(betAmt);
     }
 
     return str;

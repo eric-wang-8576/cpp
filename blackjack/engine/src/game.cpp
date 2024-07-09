@@ -222,13 +222,20 @@ void Game::handleSplit(Msg& msg) {
     // The new hand points to the second card
     Card* cardP = playerHands[playerIdx].popCard();
     playerHands[playerIdx].setOriginal(false);
-    playerHands[numPlayerHands].addCard(cardP);
-    playerHands[numPlayerHands].setOriginal(false);
+
+    // Shift all remaining cards upward
+    for (int idx = numPlayerHands; idx > playerIdx + 1; --idx) {
+        playerHands[idx] = playerHands[idx - 1];
+    }
+
+    playerHands[playerIdx + 1].reset();
+    playerHands[playerIdx + 1].addCard(cardP);
+    playerHands[playerIdx + 1].setOriginal(false);
 
     // Double the user's bet
     uint32_t originalBet = playerHands[playerIdx].getBetAmt();
     stackSize -= originalBet;
-    playerHands[numPlayerHands].setBetAmt(originalBet);
+    playerHands[playerIdx + 1].setBetAmt(originalBet);
 
     // Increment numPlayerHands to match number of hands
     numPlayerHands++;
