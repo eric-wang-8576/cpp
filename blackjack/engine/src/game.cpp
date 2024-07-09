@@ -15,13 +15,53 @@ bool Game::parseAdd(const std::string& input) {
 
 // Directly populates the bet states of game if successful
 bool Game::parseBet(const std::string& input) {
-    uint32_t numBetsP;
-    uint32_t totalBetP;
+    uint32_t numBetsP = 0;
+    uint32_t totalBetP = 0;
     uint32_t betsP[7];
 
-    if (input[0] != 'b' || input[1] != ' ' || input[2] != '$') {
+    auto isDigit = [] (char c) {
+        return '0' <= c && c <= '9';
+    };
+
+    if (input.length() == 0 || input[0] != 'b') {
         return false;
     }
+
+    uint32_t idx = 1;
+    while (idx < input.length() && numBetsP < 7) {
+        if (input[idx++] != ' ') {
+            return false;
+        }
+        if (input[idx++] != '$') {
+            return false;
+        }
+
+        uint32_t currBet = 0;
+        while (idx < input.length() && isDigit(input[idx])) {
+            currBet *= 10;
+            currBet += input[idx] - '0';
+            idx++;
+        }
+        if (currBet == 0) {
+            return false;
+        }
+        betsP[numBetsP] = currBet;
+        numBetsP++;
+        totalBetP += currBet;
+    }
+
+    // There must be at least one bet and at most seven 
+    if (numBetsP == 0 || idx != input.length()) {
+        return false;
+    }
+
+    // Successful bet parse, populate values
+    numBets = numBetsP;
+    totalBet = totalBetP;
+    for (int i = 0; i < numBetsP; ++i) {
+        bets[i] = betsP[i];
+    }
+    return true;
 }
 
 bool Game::parseTip(const std::string& input) {
@@ -405,9 +445,9 @@ void Game::concludeHand(Msg& msg, bool justShuffled) {
 
 void Game::processInput(const std::string& input, Msg& msg) {
 
-    // Repeat bet
-    if (input == "b") {
-        if (activeBoard || numBets < 1 || numBets > 7) {
+    // Bet
+    if (input == "b" || parseBet(input)) {
+        if (activeBoard) {
             goto invalidLabel;
         }
 
@@ -417,7 +457,7 @@ void Game::processInput(const std::string& input, Msg& msg) {
 
         return handleBet(msg);
 
-    // Player hits
+    // Hit
     } else if (input == "h") {
         
         if (!activeBoard) {
@@ -479,25 +519,6 @@ void Game::processInput(const std::string& input, Msg& msg) {
         }
 
         return handleAdd(addValue, msg);
-
-    // Initiate new bet
-    } else if (parseBet(input)) {
-        if (activeBoard) {
-            goto invalidLabel;
-        }
-
-        numBets = 0;
-        totalBet = 0;
-
-        if (numBets < 1 || numBets > 7) {
-            goto invalidLabel;
-        }
-
-        if (totalBet > stackSize) {
-            goto insufficientFunds;
-        }
-
-        return handleBet(msg);
 
     // Tip
     } else if (parseTip(input)) {

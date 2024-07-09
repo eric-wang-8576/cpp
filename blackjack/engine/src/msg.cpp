@@ -49,14 +49,17 @@ void Msg::print() {
         std::cout << green;
         std::cout << boardBorder << std::endl;
         std::cout << "|| BOARD ||" << std::endl;
-        std::cout << "Dealer's Hand:       " << dealerHandP->getString() << std::endl;
+        std::cout << "Dealer's Hand:        " << dealerHandP->getString() << std::endl;
         for (int hand = 0; hand < numPlayerHands; ++hand) {
             if (hand == playerIdx) {
                 std::cout << bold_on;
             }
 
-            std::cout << "Player's Hand #" << hand + 1 << ":    " <<
-                playerHandsP[hand].getString() << std::endl;
+            std::cout << "Player's Hand #" << hand + 1 << ":    ";
+            if (hand < 9) {
+                std::cout << " ";
+            }
+            std::cout << playerHandsP[hand].getString() << std::endl;
 
             if (hand == playerIdx) {
                 std::cout << bold_off << green;
