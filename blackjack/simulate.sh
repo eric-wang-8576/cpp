@@ -33,7 +33,7 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # Plot results and delete temporary file
-python3 game/bots/histogram.py pnls.txt
+python3 game/bots/simulate_histogram.py pnls.txt
 rm pnls.txt
 
 echo "Successfully wrote to output.txt"

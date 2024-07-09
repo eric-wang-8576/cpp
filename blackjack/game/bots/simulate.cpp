@@ -19,6 +19,7 @@ std::mutex mutex;
 
 // Returns the PNL
 void runSimulation(uint32_t numHands, uint32_t numTrialsPerThread, const std::string& betSize, std::string& PNLstr) {
+    PNLstr.reserve(numTrialsPerThread * 10);
     for (int trial = 0; trial < numTrialsPerThread; ++trial) {
         Game game {6};
 
@@ -97,6 +98,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    std::cout << "PNL Distribution for " + valueToString(numHands) + " hands @ \'" + betString + "\' -> " + valueToString(numTrials) + " trials" << std::endl;
     for (int i = 0; i < NUMTHREADS; ++i) {
         std::cout << PNLs[i];
     }

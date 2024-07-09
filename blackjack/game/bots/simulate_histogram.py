@@ -1,10 +1,13 @@
 import sys
 import matplotlib.pyplot as plt
 
-def read_data(file_path):
+def read_file(file_path):
     with open(file_path, 'r') as file:
-        data = file.readlines()
-    return [int(value.strip().replace('$', '').replace(',', '')) for value in data]
+        contents = file.readlines()
+    return contents
+
+def convert_data(contents):
+    return [int(value.strip().replace('$', '').replace(',', '')) for value in contents]
 
 def plot_histogram(data, bins=50, title='PNL Distributions', xlabel='PNL', ylabel='Frequency'):
     plt.figure(figsize=(10, 6))
@@ -21,5 +24,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     file_path = sys.argv[1]
-    data = read_data(file_path)
-    plot_histogram(data)
+    contents = read_file(file_path)
+    title = contents[0]
+    data = convert_data(contents[1:])
+    plot_histogram(data, 50, title, 'PNL', 'Frequency')
