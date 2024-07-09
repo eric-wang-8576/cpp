@@ -42,6 +42,11 @@ private:
     // Copy Board Status
     void fillMsg(Msg& msg);
 
+    // Parsers
+    bool parseAdd(const std::string& input);
+    bool parseBet(const std::string& input);
+    bool parseTip(const std::string& input);
+
     // Handlers
     void handleAdd(uint32_t addValue, Msg& msg);
     void handleBet(Msg& msg);
@@ -49,6 +54,9 @@ private:
     void handleStand(Msg& msg);
     void handleDouble(Msg& msg);
     void handleSplit(Msg& msg);
+    void handleTip(uint32_t tipValue, Msg& msg);
+    void handleExit(Msg& msg);
+
 
     void advancePlayerIdx();
 
@@ -76,6 +84,6 @@ public:
 
     // API for user
     // Filters user requests for correct usage corresponding to game state
-    void processInput(std::string input, Msg& msg); 
+    void processInput(const std::string& input, Msg& msg); 
 
 };

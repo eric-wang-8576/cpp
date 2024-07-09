@@ -1,12 +1,40 @@
 #include "game.hpp"
 #include <sys/ioctl.h>
 
-std::regex addPattern("a\\s\\$\\d+");
-std::regex betPattern(R"(b(\s\$(\d+)){1,7})");
-std::regex singleBetPattern(R"(\$(\d+))");
-std::smatch matches;
-std::regex betPattern2("b");
-std::regex tipPattern("t\\s\\$\\d+");
+bool Game::parseAdd(const std::string& input) {
+    if (input[0] != 'a' || input[1] != ' ' || input[2] != '$') {
+        return false;
+    }
+    for (int i = 3; i < input.length(); ++i) {
+        if (!('0' <= input[i] && input[i] <= '9')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Directly populates the bet states of game if successful
+bool Game::parseBet(const std::string& input) {
+    uint32_t numBetsP;
+    uint32_t totalBetP;
+    uint32_t betsP[7];
+
+    if (input[0] != 'b' || input[1] != ' ' || input[2] != '$') {
+        return false;
+    }
+}
+
+bool Game::parseTip(const std::string& input) {
+    if (input[0] != 't' || input[1] != ' ' || input[2] != '$') {
+        return false;
+    }
+    for (int i = 3; i < input.length(); ++i) {
+        if (!('0' <= input[i] && input[i] <= '9')) {
+            return false;
+        }
+    }
+    return true;
+}
 
 void Game::resetBoard() {
     // Clear hands
@@ -260,6 +288,36 @@ void Game::handleSplit(Msg& msg) {
     return;
 }
 
+void Game::handleTip(uint32_t tipValue, Msg& msg) {
+    stackSize -= tipValue;
+    tips += tipValue;
+
+    fillMsg(msg);
+    msg.prevActionConfirmation = "You tipped the dealer " + priceToString(tipValue);
+    msg.showBoard = false;
+    msg.prompt = false;
+
+    return;
+}
+
+void Game::handleExit(Msg& msg) {
+    int pnl = (int) stackSize - (int) buyIn;
+    msg.prevActionConfirmation = 
+        "Thank you for playing.\nYou bought in for " + priceToString(buyIn) + 
+        " and ended up with up with " + priceToString(stackSize) + 
+        ".\nYou tipped " + priceToString(tips) +
+        ".\nYou played a total of " + valueToString(numHands) + " hands" +
+        " and the deck was shuffled " + valueToString(numShuffles) + " times." +
+        "\n\nTotal PNL: " + PNLToString(pnl);
+    msg.stackSize = stackSize;
+    msg.showBoard = false;
+    msg.prompt = false;
+    msg.gameOver = true;
+    msg.PNL = (int) stackSize - (int) buyIn;
+
+    return;
+}
+
 void Game::advancePlayerIdx() {
     while (playerIdx < numPlayerHands && playerHands[playerIdx].isBlackjack()) {
         playerIdx++;
@@ -345,59 +403,10 @@ void Game::concludeHand(Msg& msg, bool justShuffled) {
     return;
 }
 
-void Game::processInput(std::string input, Msg& msg) {
+void Game::processInput(const std::string& input, Msg& msg) {
 
-    // Adding Chips
-    if (std::regex_match(input, addPattern)) {
-        uint32_t addValue;
-        try {
-            addValue = std::stoi(input.substr(3));
-        } catch (const std::out_of_range& e) {
-            goto invalidLabel;
-        }
-
-        return handleAdd(addValue, msg);
-
-    // Attempting to start a round 
-    } else if (std::regex_match(input, matches, betPattern)) {
-        if (activeBoard) {
-            goto invalidLabel;
-        }
-
-        numBets = 0;
-        totalBet = 0;
-
-        std::string matchedString = matches.str(0);
-        std::sregex_iterator iter(matchedString.begin(), matchedString.end(), singleBetPattern);
-        std::sregex_iterator end;
-
-        // Iterate through the matches and convert to integers
-        while (iter != end) {
-            try {
-                bets[numBets] = std::stoi((*iter)[1].str());
-            } catch (const std::out_of_range& e) {
-                numBets = 0;
-                totalBet = 0;
-                goto invalidLabel;
-            }
-
-            totalBet += bets[numBets];
-            numBets++;
-            ++iter;
-        }
-
-        if (numBets < 1 || numBets > 7) {
-            goto invalidLabel;
-        }
-
-        if (totalBet > stackSize) {
-            goto insufficientFunds;
-        }
-
-        return handleBet(msg);
-
-    // Player bets previous bet
-    } else if (std::regex_match(input, betPattern2)) {
+    // Repeat bet
+    if (input == "b") {
         if (activeBoard || numBets < 1 || numBets > 7) {
             goto invalidLabel;
         }
@@ -417,7 +426,7 @@ void Game::processInput(std::string input, Msg& msg) {
 
         return handleHit(msg);
 
-    // Player stands
+    // Stand
     } else if (input == "s") {
 
         if (!activeBoard) {
@@ -426,7 +435,7 @@ void Game::processInput(std::string input, Msg& msg) {
 
         return handleStand(msg);
 
-    // Player doubles down
+    // Double down
     } else if (input == "d") {
 
         if (!activeBoard) {
@@ -443,7 +452,7 @@ void Game::processInput(std::string input, Msg& msg) {
 
         return handleDouble(msg);
 
-    // Player splits 
+    // Split
     } else if (input == "p") {
 
         if (!activeBoard) {
@@ -460,8 +469,38 @@ void Game::processInput(std::string input, Msg& msg) {
 
         return handleSplit(msg);
 
-    // Tip the dealer
-    } else if (std::regex_match(input, tipPattern)) {
+    // Add more money
+    } else if (parseAdd(input)) {
+        uint32_t addValue;
+        try {
+            addValue = std::stoi(input.substr(3));
+        } catch (const std::out_of_range& e) {
+            goto invalidLabel;
+        }
+
+        return handleAdd(addValue, msg);
+
+    // Initiate new bet
+    } else if (parseBet(input)) {
+        if (activeBoard) {
+            goto invalidLabel;
+        }
+
+        numBets = 0;
+        totalBet = 0;
+
+        if (numBets < 1 || numBets > 7) {
+            goto invalidLabel;
+        }
+
+        if (totalBet > stackSize) {
+            goto insufficientFunds;
+        }
+
+        return handleBet(msg);
+
+    // Tip
+    } else if (parseTip(input)) {
         uint32_t tipValue;
         try {
             tipValue = std::stoi(input.substr(3));
@@ -473,32 +512,12 @@ void Game::processInput(std::string input, Msg& msg) {
             goto insufficientFunds;
         }
 
-        stackSize -= tipValue;
-        tips += tipValue;
-
-        fillMsg(msg);
-        msg.prevActionConfirmation = "You tipped the dealer " + priceToString(tipValue);
-        msg.showBoard = false;
-        msg.prompt = false;
-        return;
+        return handleTip(tipValue, msg);
 
     // Player exits
     } else if (input == "e") {
-        int pnl = (int) stackSize - (int) buyIn;
-        msg.prevActionConfirmation = 
-            "Thank you for playing.\nYou bought in for " + priceToString(buyIn) + 
-            " and ended up with up with " + priceToString(stackSize) + 
-            ".\nYou tipped " + priceToString(tips) +
-            ".\nYou played a total of " + valueToString(numHands) + " hands" +
-            " and the deck was shuffled " + valueToString(numShuffles) + " times." +
-            "\n\nTotal PNL: " + PNLToString(pnl);
-        msg.stackSize = stackSize;
-        msg.showBoard = false;
-        msg.prompt = false;
-        msg.gameOver = true;
-        msg.PNL = (int) stackSize - (int) buyIn;
 
-        return;
+        return handleExit(msg);
 
     } else {
         goto invalidLabel;
