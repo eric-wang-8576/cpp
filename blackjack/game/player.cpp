@@ -4,13 +4,13 @@
 
 std::string commands = std::string{} + "\n" + 
     "- \'e\': exits the game\n" +
-    "- \'b\': places bet equal to the previous one (default $100)\n" +
+    "- \'b\': places bets equal to the previous hand (default one bet of $100)\n" +
     "- \'h\': hit\n" +
     "- \'s\': stand\n" + 
     "- \'d\': double down\n" + 
     "- \'p\': split\n" +
     "- \'a $XXX\': adds on $XXX to your stack\n" +
-    "- \'b $XXX\': places a bet of $XXX\n" +
+    "- \'b $XXX $YYY ... \': places bets of $XXX $YYY ... up to 7 hands\n" +
     "- \'t $XXX\': tips the dealer $XXX\n\n";
 
 int main(int numArgs, char** argv) {

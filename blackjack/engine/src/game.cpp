@@ -358,6 +358,25 @@ void Game::handleExit(Msg& msg) {
     return;
 }
 
+void Game::handleInvalid(Msg& msg) {
+    fillMsg(msg);
+    msg.prevActionConfirmation = "Invalid Action -> Please Try Again";
+    msg.prompt = false;
+
+    return;
+}
+
+void Game::handleInsufficientFunds(Msg& msg) {
+    fillMsg(msg);
+    msg.prevActionConfirmation = "Your current stack size is " +
+                                 priceToString(stackSize) + 
+                                 ". Please add more money " +
+                                 "to perform this action.";
+    msg.prompt = false;
+
+    return;
+}
+
 void Game::advancePlayerIdx() {
     while (playerIdx < numPlayerHands && playerHands[playerIdx].isBlackjack()) {
         playerIdx++;
@@ -448,11 +467,11 @@ void Game::processInput(const std::string& input, Msg& msg) {
     // Bet
     if (input == "b" || parseBet(input)) {
         if (activeBoard) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         if (totalBet > stackSize) {
-            goto insufficientFunds;
+            return handleInsufficientFunds(msg);
         }
 
         return handleBet(msg);
@@ -461,7 +480,7 @@ void Game::processInput(const std::string& input, Msg& msg) {
     } else if (input == "h") {
         
         if (!activeBoard) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         return handleHit(msg);
@@ -470,7 +489,7 @@ void Game::processInput(const std::string& input, Msg& msg) {
     } else if (input == "s") {
 
         if (!activeBoard) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         return handleStand(msg);
@@ -479,15 +498,15 @@ void Game::processInput(const std::string& input, Msg& msg) {
     } else if (input == "d") {
 
         if (!activeBoard) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         if (playerHands[playerIdx].getNumCards() != 2) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         if (stackSize < playerHands[playerIdx].getBetAmt()) {
-            goto insufficientFunds;
+            return handleInsufficientFunds(msg);
         }
 
         return handleDouble(msg);
@@ -496,15 +515,15 @@ void Game::processInput(const std::string& input, Msg& msg) {
     } else if (input == "p") {
 
         if (!activeBoard) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         if (!(playerHands[playerIdx].isPair())) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         if (stackSize < playerHands[playerIdx].getBetAmt()) {
-            goto insufficientFunds;
+            return handleInsufficientFunds(msg);
         }
 
         return handleSplit(msg);
@@ -515,7 +534,7 @@ void Game::processInput(const std::string& input, Msg& msg) {
         try {
             addValue = std::stoi(input.substr(3));
         } catch (const std::out_of_range& e) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         return handleAdd(addValue, msg);
@@ -526,11 +545,11 @@ void Game::processInput(const std::string& input, Msg& msg) {
         try {
             tipValue = std::stoi(input.substr(3));
         } catch (const std::out_of_range& e) {
-            goto invalidLabel;
+            return handleInvalid(msg);
         }
 
         if (stackSize < tipValue) {
-            goto insufficientFunds;
+            return handleInsufficientFunds(msg);
         }
 
         return handleTip(tipValue, msg);
@@ -541,21 +560,6 @@ void Game::processInput(const std::string& input, Msg& msg) {
         return handleExit(msg);
 
     } else {
-        goto invalidLabel;
+        return handleInvalid(msg);
     }
-
-insufficientFunds:
-    fillMsg(msg);
-    msg.prevActionConfirmation = "Your current stack size is " +
-                                 priceToString(stackSize) + 
-                                 ". Please add more money " +
-                                 "to perform this action.";
-    msg.prompt = false;
-    return;
-
-invalidLabel:
-    fillMsg(msg);
-    msg.prevActionConfirmation = "Invalid Action -> Please Try Again";
-    msg.prompt = false;
-    return;
 }

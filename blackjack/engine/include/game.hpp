@@ -56,7 +56,8 @@ private:
     void handleSplit(Msg& msg);
     void handleTip(uint32_t tipValue, Msg& msg);
     void handleExit(Msg& msg);
-
+    void handleInvalid(Msg& msg);
+    void handleInsufficientFunds(Msg& msg);
 
     void advancePlayerIdx();
 
