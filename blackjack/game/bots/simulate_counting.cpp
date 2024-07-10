@@ -56,11 +56,9 @@ double calculateCount(int count, int numCardsRemaining) {
 
 
 // Returns the PNL
-void runSimulation(uint32_t numHands, uint32_t numTrialsPerThread, double threshold, std::string& PNLstr) {
+void runSimulation(uint8_t numDecks, uint32_t numHands, uint32_t numTrialsPerThread, double threshold, std::string& PNLstr) {
     PNLstr.reserve(numTrialsPerThread * 10);
     for (int trial = 0; trial < numTrialsPerThread; ++trial) {
-        int numDecks = 6;
-
         // Counting state
         int count = 0;
         int numCardsRemaining = numDecks * 52;
@@ -150,20 +148,21 @@ void runSimulation(uint32_t numHands, uint32_t numTrialsPerThread, double thresh
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 4) {
+    if (argc != 5) {
         std::cout << "Please specify number of hands, number of trials, and counting threshold" << std::endl;
         exit(1);
     }
 
-    uint32_t numHands = std::stoi(argv[1]);
-    uint32_t numTrials = std::stoi(argv[2]);
-    double threshold = std::stoi(argv[3]);
+    uint8_t numDecks = std::stoi(argv[1]);
+    uint32_t numHands = std::stoi(argv[2]);
+    uint32_t numTrials = std::stoi(argv[3]);
+    double threshold = std::stoi(argv[4]);
 
     // Launch Threads
     std::vector<std::string> PNLs(NUMTHREADS);
     std::vector<std::thread> threads;
     for (int i = 0; i < NUMTHREADS; ++i) {
-        threads.emplace_back(runSimulation, numHands, numTrials / NUMTHREADS, threshold, std::ref(PNLs[i]));
+        threads.emplace_back(runSimulation, numDecks, numHands, numTrials / NUMTHREADS, threshold, std::ref(PNLs[i]));
     }
 
     for (auto& th: threads) {

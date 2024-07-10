@@ -14,7 +14,7 @@
 #define BETSIZE 2
 
 std::string rebuy = "a $10000";
-std::string smallBetSize = "b $2";
+std::string smallBetSize = "b $100";
 std::string bigBetSize = "b $10000";
 std::string e = "e";
 

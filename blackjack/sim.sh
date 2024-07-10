@@ -1,6 +1,6 @@
 # Check if the correct number of arguments is provided
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <betString> <numHands> <numTrials>"
+if [ "$#" -ne 4 ]; then
+    echo "Usage: $0 <numDecks> <betString> <numHands> <numTrials>"
     exit 1
 fi
 
@@ -10,10 +10,15 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 cd ..
 
+numDecks="$1"
+betString="$2"
+numHands="$3"
+numTrials="$4"
 
-betString="$1"
-numHands="$2"
-numTrials="$3"
+if ! [[ "$numDecks" =~ ^-?[0-9]+$ ]]; then
+    echo "Error: The second argument must be a valid number."
+    exit 1
+fi
 
 if ! [[ "$numHands" =~ ^-?[0-9]+$ ]]; then
     echo "Error: The second argument must be a valid number."
@@ -27,7 +32,7 @@ fi
 
 # Run simulation
 touch pnls.txt
-./build/game/simulate_basic "$betString" "$numHands" "$numTrials" > pnls.txt
+./build/game/simulate_basic "$numDecks" "$betString" "$numHands" "$numTrials" > pnls.txt
 if [ "$?" -ne 0 ]; then
     echo "Error: Failed to run the C++ binary."
     exit 1

@@ -18,10 +18,10 @@ std::string e = "e";
 std::mutex mutex;
 
 // Returns the PNL
-void runSimulation(uint32_t numHands, uint32_t numTrialsPerThread, const std::string& betSize, std::string& PNLstr) {
+void runSimulation(uint8_t numDecks, uint32_t numHands, uint32_t numTrialsPerThread, const std::string& betSize, std::string& PNLstr) {
     PNLstr.reserve(numTrialsPerThread * 10);
     for (int trial = 0; trial < numTrialsPerThread; ++trial) {
-        Game game {6};
+        Game game {numDecks};
 
         uint32_t stackSize = 0;
 
@@ -76,20 +76,21 @@ void runSimulation(uint32_t numHands, uint32_t numTrialsPerThread, const std::st
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 4) {
-        std::cout << "Please specify bet string, number of hands, and number of trials" << std::endl;
+    if (argc != 5) {
+        std::cout << "Please specify number of decks, bet string, number of hands, and number of trials" << std::endl;
         exit(1);
     }
 
-    std::string betString = argv[1];
-    uint32_t numHands = std::stoi(argv[2]);
-    uint32_t numTrials = std::stoi(argv[3]);
+    uint32_t numDecks = std::stoi(argv[1]);
+    std::string betString = argv[2];
+    uint32_t numHands = std::stoi(argv[3]);
+    uint32_t numTrials = std::stoi(argv[4]);
 
     // Launch Threads
     std::vector<std::string> PNLs(NUMTHREADS);
     std::vector<std::thread> threads;
     for (int i = 0; i < NUMTHREADS; ++i) {
-        threads.emplace_back(runSimulation, numHands, numTrials / NUMTHREADS, betString, std::ref(PNLs[i]));
+        threads.emplace_back(runSimulation, numDecks, numHands, numTrials / NUMTHREADS, betString, std::ref(PNLs[i]));
     }
 
     for (auto& th: threads) {

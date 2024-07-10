@@ -2,6 +2,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
+from matplotlib.ticker import FuncFormatter
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -30,6 +31,21 @@ def plot_histogram(data, bins=50, title='PNL Distributions', xlabel='PNL', ylabe
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(True)
+
+    # Custom formatter to display dollar amounts with commas for the x-axis
+    def dollar_formatter(x, pos):
+        if x < 0:
+            return f'-$ {-x:,.0f}'
+        return f'${x:,.0f}'
+
+    # Custom formatter to display numbers with commas for the y-axis
+    def comma_formatter(y, pos):
+        return f'{y:,.0f}'
+
+    ax = plt.gca()  # Get the current axes
+    ax.xaxis.set_major_formatter(FuncFormatter(dollar_formatter))
+    ax.yaxis.set_major_formatter(FuncFormatter(comma_formatter))
+
     plt.show()
 
 if __name__ == "__main__":
@@ -41,17 +57,18 @@ if __name__ == "__main__":
     contents = read_file(file_path)
     title = contents[0]
     data = convert_data(contents[1:])
-    percentile_values = get_all_percentile_values(data)
 
-    # Preparing data for a more compact display
-    compact_data = []
-    for i in range(20):
-        compact_data.append([])
-    for percentile, value in percentile_values.items():
-        sign = "+$" if value >= 0 else "-$"
-        formatted_value = f"{sign}{abs(value):,.2f}"
-        compact_data[(percentile) % 20].append(f"{percentile}%: {formatted_value}")
+    # Print percentile data
+    if (len(data) >= 100):
+        percentile_values = get_all_percentile_values(data)
+        compact_data = []
+        for i in range(20):
+            compact_data.append([])
+        for percentile, value in percentile_values.items():
+            sign = "+$" if value >= 0 else "-$"
+            formatted_value = f"{sign}{abs(value):,.2f}"
+            compact_data[(percentile) % 20].append(f"{percentile}%: {formatted_value}")
 
-    # Printing the compact table
-    print(tabulate(compact_data, tablefmt="plain"))
+        print(tabulate(compact_data, tablefmt="plain"))
+
     plot_histogram(data, 50, title, 'PNL', 'Frequency')
