@@ -35,8 +35,8 @@ def plot_histogram(data, bins=50, title='PNL Distributions', xlabel='PNL', ylabe
     # Custom formatter to display dollar amounts with commas for the x-axis
     def dollar_formatter(x, pos):
         if x < 0:
-            return f'-$ {-x:,.0f}'
-        return f'${x:,.0f}'
+            return f'-${-x:,.0f}'
+        return f'+${x:,.0f}'
 
     # Custom formatter to display numbers with commas for the y-axis
     def comma_formatter(y, pos):
